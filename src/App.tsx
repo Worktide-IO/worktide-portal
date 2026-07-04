@@ -12,6 +12,8 @@ import { SystemsPage } from '@/pages/SystemsPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { AgreementsPage } from '@/pages/AgreementsPage';
 import { IdeasPage } from '@/pages/IdeasPage';
+import { DocumentsPage } from '@/pages/DocumentsPage';
+import { DocumentDetailPage } from '@/pages/DocumentDetailPage';
 
 /** Gate authenticated routes; unauthenticated visitors go to /login. */
 function RequireAuth({ children }: { children: ReactNode }) {
@@ -30,6 +32,8 @@ export default function App() {
       <Route path="/monitoring" element={<RequireAuth><SystemsPage /></RequireAuth>} />
       <Route path="/agreements" element={<RequireAuth><AgreementsPage /></RequireAuth>} />
       <Route path="/ideas" element={<RequireAuth><IdeasPage /></RequireAuth>} />
+      <Route path="/documents" element={<RequireAuth><DocumentsPage /></RequireAuth>} />
+      <Route path="/documents/:id" element={<RequireAuth><DocumentDetailPage /></RequireAuth>} />
       <Route path="*" element={<Navigate to="/tickets" replace />} />
     </Routes>
   );
