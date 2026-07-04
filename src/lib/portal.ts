@@ -194,6 +194,22 @@ export type PortalProposal = {
   ticketIdentifier: string | null;
 };
 
+// Social-Freigabe (screen 6): review + approve AI-drafted social posts.
+export type PortalSocialTarget = { channel: string; permalink: string | null };
+
+export type PortalSocialPost = {
+  id: string;
+  body: string;
+  mediaCount: number;
+  status: string; // draft | pending_approval | scheduled | published | ...
+  statusLabel: string;
+  scheduledAt: string | null;
+  publishedAt: string | null;
+  changeRequestNote: string | null;
+  canDecide: boolean;
+  targets: PortalSocialTarget[];
+};
+
 export type NewTicketInput = {
   title: string;
   description?: string;
@@ -267,4 +283,15 @@ export const portalApi = {
 
   sendProposalFeedback: (id: string, message: string) =>
     api.post<PortalProposal>(`/portal/proposals/${id}/feedback`, { message }).then((r) => r.data),
+
+  socialPosts: () => api.get<{ posts: PortalSocialPost[] }>('/portal/social').then((r) => r.data.posts),
+
+  approveSocial: (id: string) =>
+    api.post<PortalSocialPost>(`/portal/social/${id}/approve`).then((r) => r.data),
+
+  rejectSocial: (id: string) =>
+    api.post<PortalSocialPost>(`/portal/social/${id}/reject`).then((r) => r.data),
+
+  requestSocialChange: (id: string, message: string) =>
+    api.post<PortalSocialPost>(`/portal/social/${id}/request-change`, { message }).then((r) => r.data),
 };
