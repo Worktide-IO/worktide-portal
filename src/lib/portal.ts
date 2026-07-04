@@ -39,12 +39,27 @@ export type PortalMe = {
   features: PortalFeatures;
 };
 
-// Dashboard (post-login landing). Only truthfully-backed aggregates —
-// budget/blockers/activity are deferred (see docs/RECONCILIATION.md).
+// Dashboard (post-login landing). Every section is backed by a real, customer-
+// scoped source (see PortalDashboardController + docs/RECONCILIATION.md).
+export type PortalDashboardActivity = {
+  id: string;
+  label: string; // "Ticket erstellt" | "Ticket aktualisiert"
+  actor: string; // "Sie" | "Agentur"
+  ticketIdentifier: string | null;
+  ticketTitle: string | null;
+  occurredAt: string;
+};
+
 export type PortalDashboard = {
+  customerName: string;
   openTickets: { total: number; highPriority: number };
-  systems: { active: number; total: number } | null; // null when monitoring off
+  // Retainer-budget tile: consumed vs. monthly allowance. Null when the customer
+  // has no retainer project with a budget (tile hidden).
+  budget: { consumedMinutes: number; budgetMinutes: number; pct: number } | null;
+  systems: { active: number; total: number; openIncidents: number } | null; // null when monitoring off
   projects: { id: string; name: string; progressPct: number; openTasks: number }[];
+  blockers: { id: string; identifier: string; title: string; projectName: string | null }[];
+  activity: PortalDashboardActivity[];
 };
 
 // Monitoring screen: the customer's systems inventory + managed status.
