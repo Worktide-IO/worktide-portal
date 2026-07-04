@@ -62,6 +62,41 @@ export type PortalSystem = {
   statusLabel: string;
 };
 
+// Angebote & Verträge. Read-only: offers/contracts (line-items live in the
+// PDF, signing/invoices are deferred — see docs/RECONCILIATION.md) + recurring
+// subscriptions.
+export type PortalAgreement = {
+  id: string;
+  type: string;
+  typeSlug: string;
+  status: string; // draft | in_negotiation | signed | expired | superseded | terminated
+  statusLabel: string;
+  isSigned: boolean;
+  reference: string | null;
+  signedOn: string | null;
+  validUntil: string | null;
+  hasDocument: boolean;
+};
+
+export type PortalSubscription = {
+  id: string;
+  name: string;
+  description: string | null;
+  priceCents: number;
+  currency: string;
+  billingCycle: string;
+  billingLabel: string;
+  status: string; // trial | active | paused | cancelled
+  statusLabel: string;
+  nextBillingOn: string | null;
+  systemName: string | null;
+};
+
+export type PortalAgreements = {
+  agreements: PortalAgreement[];
+  subscriptions: PortalSubscription[];
+};
+
 export type NewTicketInput = {
   title: string;
   description?: string;
@@ -94,4 +129,6 @@ export const portalApi = {
     api.get<{ systems: PortalSystem[] }>('/portal/systems').then((r) => r.data.systems),
 
   dashboard: () => api.get<PortalDashboard>('/portal/dashboard').then((r) => r.data),
+
+  agreements: () => api.get<PortalAgreements>('/portal/agreements').then((r) => r.data),
 };
