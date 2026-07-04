@@ -1,7 +1,23 @@
-import { useEffect, useState } from 'react';
-import { Check, Image, MessageCircle, Sparkles, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Check, ChevronLeft, ChevronRight, Clock, Image, MessageCircle, Sparkles, X } from 'lucide-react';
 
 import { portalApi, type PortalSocialPost } from '@/lib/portal';
+
+const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const MONTHS = [
+  'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
+];
+
+/** A post's calendar date: its scheduled slot, else when it was published. */
+function postDate(p: PortalSocialPost): Date | null {
+  const iso = p.scheduledAt ?? p.publishedAt;
+  return iso ? new Date(iso) : null;
+}
+
+function dayKey(d: Date): string {
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+}
 
 const STATUS_CLASSES: Record<string, string> = {
   pending_approval: 'bg-amber-100 text-amber-800',
@@ -39,6 +55,9 @@ export function SocialPage() {
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
+      {posts && posts.length > 0 ? <ContentCalendar posts={posts} /> : null}
+
       {posts && pending > 0 ? (
         <p className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800">
           {pending} warten auf Freigabe
@@ -50,6 +69,106 @@ export function SocialPage() {
         {(posts ?? []).map((p) => (
           <SocialCard key={p.id} post={p} onChange={replace} />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function ContentCalendar({ posts }: { posts: PortalSocialPost[] }) {
+  // Start on the month that holds the earliest post, else today.
+  const initial = useMemo(() => {
+    const dates = posts.map(postDate).filter((d): d is Date => d !== null).sort((a, b) => a.getTime() - b.getTime());
+    const d = dates[0] ?? new Date();
+    return { year: d.getFullYear(), month: d.getMonth() };
+  }, [posts]);
+  const [view, setView] = useState(initial);
+
+  // Group posts by day within the viewed month.
+  const byDay = useMemo(() => {
+    const map = new Map<string, PortalSocialPost[]>();
+    for (const p of posts) {
+      const d = postDate(p);
+      if (d && d.getFullYear() === view.year && d.getMonth() === view.month) {
+        (map.get(dayKey(d)) ?? map.set(dayKey(d), []).get(dayKey(d))!).push(p);
+      }
+    }
+    return map;
+  }, [posts, view]);
+
+  // Build the grid: leading blanks so the 1st lands under the right weekday (Mo=0).
+  const first = new Date(view.year, view.month, 1);
+  const lead = (first.getDay() + 6) % 7; // JS Sun=0 → Mon-based
+  const daysInMonth = new Date(view.year, view.month + 1, 0).getDate();
+  const cells: (number | null)[] = [
+    ...Array<null>(lead).fill(null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  function shift(delta: number) {
+    setView((v) => {
+      const m = v.month + delta;
+      return { year: v.year + Math.floor(m / 12), month: ((m % 12) + 12) % 12 };
+    });
+  }
+
+  function scrollTo(id: string) {
+    document.getElementById(`post-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <div className="text-sm font-semibold text-slate-700">
+          Content-Kalender · {MONTHS[view.month]} {view.year}
+        </div>
+        <div className="flex items-center gap-1">
+          <button type="button" onClick={() => shift(-1)} className="rounded p-1 text-slate-500 hover:bg-slate-100" aria-label="Vorheriger Monat">
+            <ChevronLeft className="size-4" />
+          </button>
+          <button type="button" onClick={() => shift(1)} className="rounded p-1 text-slate-500 hover:bg-slate-100" aria-label="Nächster Monat">
+            <ChevronRight className="size-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 text-center text-xs text-slate-400">
+        {WEEKDAYS.map((w) => (
+          <div key={w} className="pb-1">{w}</div>
+        ))}
+        {cells.map((day, i) => {
+          const list = day !== null ? byDay.get(`${view.year}-${view.month}-${day}`) ?? [] : [];
+          return (
+            <div key={i} className={`min-h-16 rounded border p-1 text-left ${day === null ? 'border-transparent' : 'border-slate-100'}`}>
+              {day !== null ? <div className="text-[11px] text-slate-400">{day}</div> : null}
+              <div className="mt-0.5 space-y-0.5">
+                {list.map((p) => {
+                  const pending = p.status === 'pending_approval' || p.status === 'draft';
+                  const platform = p.targets[0]?.channel ?? 'Post';
+                  return (
+                    <button
+                      key={p.id}
+                      type="button"
+                      onClick={() => scrollTo(p.id)}
+                      title={p.statusLabel}
+                      className={`flex w-full items-center gap-1 truncate rounded px-1 py-0.5 text-left text-[10px] ${
+                        pending ? 'bg-amber-100 text-amber-800' : 'bg-green-100 text-green-700'
+                      }`}
+                    >
+                      {pending ? <Clock className="size-2.5 shrink-0" /> : <Check className="size-2.5 shrink-0" />}
+                      <span className="truncate">{platform}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 flex gap-4 text-xs text-slate-400">
+        <span className="flex items-center gap-1"><Check className="size-3 text-green-600" /> freigegeben / veröffentlicht</span>
+        <span className="flex items-center gap-1"><Clock className="size-3 text-amber-600" /> wartet auf Freigabe</span>
       </div>
     </div>
   );
@@ -71,7 +190,7 @@ function SocialCard({ post: p, onChange }: { post: PortalSocialPost; onChange: (
   }
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5">
+    <div id={`post-${p.id}`} className="scroll-mt-6 rounded-lg border border-slate-200 bg-white p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2 text-xs text-slate-400">
           <Sparkles className="size-3.5" /> KI-generiert
