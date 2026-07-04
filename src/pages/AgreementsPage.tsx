@@ -66,6 +66,28 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
         ) : null}
       </div>
 
+      {a.lineItems.length > 0 ? (
+        <div className="mt-3 rounded-md border border-slate-100 bg-slate-50/60 p-3">
+          <ul className="divide-y divide-slate-100 text-sm">
+            {a.lineItems.map((li, i) => (
+              <li key={i} className="flex items-baseline justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
+                <span className="min-w-0 text-slate-700">
+                  {li.quantity !== 1 ? <span className="text-slate-400">{li.quantity}× </span> : null}
+                  {li.description}
+                </span>
+                <span className="shrink-0 tabular-nums text-slate-600">
+                  {formatPrice(li.amountCents, a.currency)}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-2 text-sm font-semibold">
+            <span>{a.totalIsRecurring ? 'Summe / Monat (netto)' : 'Summe (netto)'}</span>
+            <span className="tabular-nums">{formatPrice(a.totalCents, a.currency)}</span>
+          </div>
+        </div>
+      ) : null}
+
       {a.canSign ? (
         <div className="mt-3">
           {!signOpen ? (
@@ -224,7 +246,7 @@ export function AgreementsPage() {
       ) : null}
 
       <p className="pt-1 text-xs text-slate-400">
-        Positionsdetails und Rechnungen folgen in einem späteren Schritt.
+        Rechnungen folgen in einem späteren Schritt.
       </p>
     </div>
   );

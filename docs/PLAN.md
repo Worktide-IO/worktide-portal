@@ -213,3 +213,22 @@ deutscher Relativzeit.
   (Retainer vorhanden), nicht pro Kontakt schaltbar (bewusst zurückgestellt, siehe „Nicht in Scope").
 - **Aktivität aus Kommentaren** — aktuell nur Task-Events; `comment.created` bräuchte Auflösung
   Comment→Task inkl. `isHiddenForConnectUsers`-Prüfung.
+
+---
+
+## Umgesetzt nach P1 — Angebots-/Vertrags-Positionen (Screen 4)
+
+> Ausgeliefert 2026-07-04. Der P1-Stand zeigte nur „Positionsdetails … folgen" (Positionen lagen
+> nur im PDF). Jetzt sind Positionen + Summe echt modelliert.
+
+**Backend (`worktide`):** net-new **`AgreementLineItem`** — eine bepreiste Position einer
+`CustomerAgreementRevision` (ManyToOne, CASCADE): `description`, `quantity`, `unitAmountCents`,
+`currency`, `isRecurring`, `position`; Zeilensumme = `quantity × unitAmountCents`. Positionen hängen
+an der Revision (Angebots-Terme bleiben über Nachverhandlungen korrekt). `PortalAgreementsController`
+liefert je Angebot `lineItems`, `totalCents`, `currency` und `totalIsRecurring` (alle Zeilen monatlich
+→ Monatssumme) aus der in-force-Revision (`currentRevision ?? pendingRevision`). Migration
+`Version20260704152843`; Functional-Test (Zeilen, Summe, Mengen-Rechnung). Suite 175 grün.
+**Weiterhin offen:** Rechnungen (kein Invoice-Modell).
+
+**Frontend (`worktide-portal`, `AgreementsPage`):** Positions-Tabelle je Angebot/Vertrag mit
+Mengen-Präfix, Zeilenbeträgen und „Summe / Monat (netto)"- bzw. „Summe (netto)"-Zeile.
