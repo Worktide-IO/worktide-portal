@@ -253,6 +253,16 @@ Liste + Detail. Unit-Test `PortalSlaCalculatorTest` (alle Zustände + Label-Form
 grau fällig · rot überschritten/verpasst · grün erfüllt; „—" ausgeblendet) und eine „SLA: …"-Zeile
 im Ticket-Detail.
 
+**Staff-UI (`worktide-web`, nachgeliefert 2026-07-04):** die Policy war zunächst nur Code-Default +
+`settings.portal.sla`-JSON **ohne UI**. Jetzt gibt es einen Editor unter **Einstellungen →
+Kundenportal** (`/settings/portal`, neue `PortalSettingsPage`): Karte „SLA-Reaktionszeiten" mit vier
+Feldern (Dringend/Hoch/Mittel/Niedrig, Std.). Leer = Standard (Placeholder zeigt den Default), 0 =
+keine SLA. Speichern via bestehendes `PATCH /v1/workspaces/{id}` (merge-patch, `WorkspaceVoter` EDIT =
+Owner/Admin); die Karte merged `settings.portal` tief, sodass `enabled`/`features` erhalten bleiben —
+gleiches Muster wie `WorkspaceProjectNumberCard`. **Kein Backend-Change** (der Calculator las
+`settings.portal.sla` bereits). End-to-end verifiziert: Speichern schreibt `{high:8}` (enabled+features
+intakt), Portal-Fenster folgt; Feld leeren → Portal fällt auf Default 4h zurück.
+
 **Ehrliche Einschränkung:** die Policy ist ein sinnvoller Default keyed auf Priorität, kein
 kundenspezifischer SLA-Vertrag. Ein strukturiertes SLA-Modell (Reaktions-/Lösungszeiten pro
 Agreement, Pausieren bei „wartet auf Kunde") bleibt späterer Ausbau.
