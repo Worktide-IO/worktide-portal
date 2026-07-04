@@ -271,9 +271,14 @@ export const portalApi = {
   addComment: (id: string, content: string) =>
     api.post<PortalComment>(`/portal/tickets/${id}/comments`, { content }).then((r) => r.data),
 
-  systems: () =>
+  systems: (days?: number) =>
     api
-      .get<{ systems: PortalSystem[]; incidents: PortalSystemIncident[] }>('/portal/systems')
+      .get<{
+        systems: PortalSystem[];
+        incidents: PortalSystemIncident[];
+        windowDays: number;
+        availableWindows: number[];
+      }>('/portal/systems', days ? { params: { days } } : undefined)
       .then((r) => r.data),
 
   dashboard: () => api.get<PortalDashboard>('/portal/dashboard').then((r) => r.data),
