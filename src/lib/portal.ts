@@ -97,6 +97,34 @@ export type PortalAgreements = {
   subscriptions: PortalSubscription[];
 };
 
+// Ziele & Ideen (screen 5). Goals are read-only; ideas support submit + vote.
+export type PortalGoal = {
+  id: string;
+  title: string;
+  description: string | null;
+  unit: string | null;
+  targetValue: number | null;
+  currentValue: number | null;
+  status: string; // on_track | at_risk | reached | missed
+  statusLabel: string;
+  progressPct: number | null;
+  targetDate: string | null;
+};
+
+export type PortalIdea = {
+  id: string;
+  title: string;
+  description: string | null;
+  status: string; // proposed | under_review | accepted | rejected | done
+  statusLabel: string;
+  origin: string; // customer | agency | ai
+  originLabel: string;
+  submittedBy: string | null;
+  voteCount: number;
+  hasVoted: boolean;
+  createdAt: string;
+};
+
 export type NewTicketInput = {
   title: string;
   description?: string;
@@ -131,4 +159,17 @@ export const portalApi = {
   dashboard: () => api.get<PortalDashboard>('/portal/dashboard').then((r) => r.data),
 
   agreements: () => api.get<PortalAgreements>('/portal/agreements').then((r) => r.data),
+
+  goals: () => api.get<{ goals: PortalGoal[] }>('/portal/goals').then((r) => r.data.goals),
+
+  ideas: () => api.get<{ ideas: PortalIdea[] }>('/portal/ideas').then((r) => r.data.ideas),
+
+  submitIdea: (title: string, description?: string) =>
+    api.post<PortalIdea>('/portal/ideas', { title, description }).then((r) => r.data),
+
+  voteIdea: (id: string) =>
+    api.post<{ voteCount: number; hasVoted: boolean }>(`/portal/ideas/${id}/vote`).then((r) => r.data),
+
+  unvoteIdea: (id: string) =>
+    api.delete<{ voteCount: number; hasVoted: boolean }>(`/portal/ideas/${id}/vote`).then((r) => r.data),
 };
