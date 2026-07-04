@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Save } from 'lucide-react';
 
 import { portalApi, type PortalFormDetail, type PortalFormField } from '@/lib/portal';
 
@@ -12,11 +12,42 @@ export function FormFillPage() {
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedNote, setSavedNote] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
 
   useEffect(() => {
-    portalApi.form(id).then(setForm).catch(() => setError('Fragebogen nicht gefunden oder kein Zugriff.'));
+    portalApi
+      .form(id)
+      .then((f) => {
+        setForm(f);
+        // Resume: prefill from the saved draft.
+        if (f.draft) setValues(f.draft);
+        if (f.draftSavedAt) setSavedNote('Entwurf gespeichert');
+      })
+      .catch(() => setError('Fragebogen nicht gefunden oder kein Zugriff.'));
   }, [id]);
+
+  // Progress = share of fields with a non-empty value.
+  const progress = useMemo(() => {
+    const fields = form?.fields ?? [];
+    if (fields.length === 0) return 0;
+    const filled = fields.filter((f) => {
+      const v = values[f.key];
+      return v !== undefined && v !== null && v !== '';
+    }).length;
+    return Math.round((filled / fields.length) * 100);
+  }, [form, values]);
+
+  async function saveDraft() {
+    setSaving(true);
+    try {
+      await portalApi.saveFormDraft(id, values);
+      setSavedNote('Entwurf gespeichert');
+    } finally {
+      setSaving(false);
+    }
+  }
 
   // Preserve section order as it appears in the field list.
   const sections = useMemo(() => {
@@ -30,6 +61,7 @@ export function FormFillPage() {
 
   function set(key: string, value: unknown) {
     setValues((v) => ({ ...v, [key]: value }));
+    setSavedNote(null); // dirty again until re-saved
   }
 
   async function submit(e: React.FormEvent) {
@@ -79,6 +111,15 @@ export function FormFillPage() {
       <div>
         <h1 className="text-xl font-semibold">{form.title}</h1>
         {form.description ? <p className="mt-1 text-sm text-slate-500">{form.description}</p> : null}
+        <div className="mt-3 flex items-center gap-3">
+          <div className="h-1.5 w-40 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full rounded-full bg-slate-800" style={{ width: `${progress}%` }} />
+          </div>
+          <span className="text-xs text-slate-500">
+            {savedNote ? `${savedNote} · ` : ''}
+            {progress} % ausgefüllt
+          </span>
+        </div>
       </div>
 
       <form onSubmit={submit} className="space-y-6">
@@ -93,13 +134,23 @@ export function FormFillPage() {
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
-        <button
-          type="submit"
-          disabled={busy}
-          className="cursor-pointer rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {busy ? 'Senden…' : 'Absenden'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            disabled={busy}
+            className="cursor-pointer rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {busy ? 'Senden…' : 'Absenden'}
+          </button>
+          <button
+            type="button"
+            onClick={saveDraft}
+            disabled={saving}
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            <Save className="size-4" /> {saving ? 'Speichern…' : 'Entwurf speichern'}
+          </button>
+        </div>
       </form>
     </div>
   );
