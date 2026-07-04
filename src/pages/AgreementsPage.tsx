@@ -107,7 +107,8 @@ export function AgreementsPage() {
 
   const offers = data.agreements.filter((a) => OFFER_STATUSES.has(a.status));
   const contracts = data.agreements.filter((a) => !OFFER_STATUSES.has(a.status));
-  const empty = data.agreements.length === 0 && data.subscriptions.length === 0;
+  const projectOffers = data.projectOffers ?? [];
+  const empty = data.agreements.length === 0 && data.subscriptions.length === 0 && projectOffers.length === 0;
 
   return (
     <div className="space-y-6">
@@ -130,6 +131,25 @@ export function AgreementsPage() {
         <Section icon={FileCheck2} title={`Verträge (${contracts.length})`}>
           {contracts.map((a) => (
             <AgreementCard key={a.id} a={a} />
+          ))}
+        </Section>
+      ) : null}
+
+      {projectOffers.length > 0 ? (
+        <Section icon={FileText} title="Angebote aus Vorschlägen">
+          {projectOffers.map((o) => (
+            <div key={o.id} className="rounded-lg border border-slate-200 bg-white p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="font-mono text-xs text-slate-400">{o.reference}</div>
+                  <div className="font-medium">{o.title}</div>
+                </div>
+                <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
+                  {o.statusLabel}
+                </span>
+              </div>
+              <div className="mt-2 text-lg font-semibold">{formatPrice(o.amountCents, o.currency)}</div>
+            </div>
           ))}
         </Section>
       ) : null}

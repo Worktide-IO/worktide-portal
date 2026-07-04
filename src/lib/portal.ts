@@ -92,9 +92,21 @@ export type PortalSubscription = {
   systemName: string | null;
 };
 
+export type PortalProjectOffer = {
+  id: string;
+  reference: string;
+  title: string;
+  amountCents: number;
+  currency: string;
+  status: string;
+  statusLabel: string;
+  createdAt: string;
+};
+
 export type PortalAgreements = {
   agreements: PortalAgreement[];
   subscriptions: PortalSubscription[];
+  projectOffers: PortalProjectOffer[];
 };
 
 // Ziele & Ideen (screen 5). Goals are read-only; ideas support submit + vote.
@@ -192,6 +204,7 @@ export type PortalProposal = {
   variants: PortalProposalVariant[];
   customerFeedback: string | null;
   ticketIdentifier: string | null;
+  offerReference: string | null;
 };
 
 // Social-Freigabe (screen 6): review + approve AI-drafted social posts.

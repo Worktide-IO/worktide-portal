@@ -155,8 +155,12 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
         </p>
       ) : null}
 
-      {p.ticketIdentifier ? (
-        <p className="mt-3 text-sm text-green-700">Angenommen → Ticket {p.ticketIdentifier} angelegt.</p>
+      {p.ticketIdentifier || p.offerReference ? (
+        <p className="mt-3 text-sm text-green-700">
+          Angenommen →{p.offerReference ? ` Angebot ${p.offerReference}` : ''}
+          {p.ticketIdentifier && p.offerReference ? ' ·' : ''}
+          {p.ticketIdentifier ? ` Ticket ${p.ticketIdentifier}` : ''} angelegt.
+        </p>
       ) : null}
 
       {!decided ? (
