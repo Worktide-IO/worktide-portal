@@ -96,6 +96,14 @@ export type PortalSystemIncident = {
 // Angebote & Verträge. Read-only: offers/contracts (line-items live in the
 // PDF, signing/invoices are deferred — see docs/RECONCILIATION.md) + recurring
 // subscriptions.
+export type PortalAgreementLineItem = {
+  description: string;
+  quantity: number;
+  unitAmountCents: number;
+  amountCents: number; // line total = quantity × unit
+  isRecurring: boolean;
+};
+
 export type PortalAgreement = {
   id: string;
   type: string;
@@ -109,6 +117,10 @@ export type PortalAgreement = {
   hasDocument: boolean;
   canSign: boolean;
   signedBy: string | null;
+  lineItems: PortalAgreementLineItem[];
+  totalCents: number;
+  currency: string;
+  totalIsRecurring: boolean; // true → total is a monthly sum ("Summe / Monat")
 };
 
 export type PortalSubscription = {
