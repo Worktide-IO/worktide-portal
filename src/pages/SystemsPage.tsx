@@ -41,13 +41,16 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-/** 30-bar uptime history. Oldest → newest, left → right. */
-function UptimeSparkline({ days }: { days: PortalSystem['uptimeDays'] }) {
+// Selectable ranges — must match the backend's ALLOWED_WINDOWS.
+const WINDOW_OPTIONS = [7, 30, 90] as const;
+
+/** Uptime history, one bar per day. Oldest → newest, left → right. */
+function UptimeSparkline({ days, windowDays }: { days: PortalSystem['uptimeDays']; windowDays: number }) {
   if (days.length === 0) {
     return <p className="text-xs text-slate-400">Noch keine Verlaufsdaten.</p>;
   }
   return (
-    <div className="flex items-end gap-0.5" title="Verfügbarkeit der letzten 30 Tage">
+    <div className="flex items-end gap-0.5" title={`Verfügbarkeit der letzten ${windowDays} Tage`}>
       {days.map((d) => (
         <span
           key={d.day}
@@ -63,25 +66,47 @@ function UptimeSparkline({ days }: { days: PortalSystem['uptimeDays'] }) {
 export function SystemsPage() {
   const [systems, setSystems] = useState<PortalSystem[] | null>(null);
   const [incidents, setIncidents] = useState<PortalSystemIncident[]>([]);
+  const [windowDays, setWindowDays] = useState(30);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let active = true;
     portalApi
-      .systems()
+      .systems(windowDays)
       .then((d) => {
+        if (!active) return;
         setSystems(d.systems);
         setIncidents(d.incidents);
       })
-      .catch(() => setError('Systeme konnten nicht geladen werden.'));
-  }, []);
+      .catch(() => active && setError('Systeme konnten nicht geladen werden.'));
+    return () => {
+      active = false;
+    };
+  }, [windowDays]);
 
   const openIncidents = incidents.filter((i) => i.open);
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold">Monitoring</h1>
-        <p className="text-sm text-slate-500">Verfügbarkeit, Antwortzeiten und Störungen Ihrer Systeme.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Monitoring</h1>
+          <p className="text-sm text-slate-500">Verfügbarkeit, Antwortzeiten und Störungen Ihrer Systeme.</p>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-slate-500">
+          Zeitraum
+          <select
+            value={windowDays}
+            onChange={(e) => setWindowDays(Number(e.target.value))}
+            className="rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-700 focus:border-slate-400 focus:outline-none"
+          >
+            {WINDOW_OPTIONS.map((d) => (
+              <option key={d} value={d}>
+                {d} Tage
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
@@ -133,10 +158,10 @@ export function SystemsPage() {
                   <div className="flex items-baseline justify-between text-sm">
                     <span className="font-medium text-slate-700">{s.uptimePct}%</span>
                     <span className="text-xs text-slate-400">
-                      Ø {s.avgResponseMs !== null ? `${s.avgResponseMs} ms` : '—'} · 30 Tage
+                      Ø {s.avgResponseMs !== null ? `${s.avgResponseMs} ms` : '—'} · {windowDays} Tage
                     </span>
                   </div>
-                  <UptimeSparkline days={s.uptimeDays} />
+                  <UptimeSparkline days={s.uptimeDays} windowDays={windowDays} />
                 </div>
               ) : (
                 <p className="mt-4 text-xs text-slate-400">Keine Verfügbarkeitsdaten.</p>
