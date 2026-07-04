@@ -173,5 +173,6 @@ Gegenprobe: Staff-Login funktioniert im Portal **nicht** (kein ROLE_PORTAL).
   Dockerfile-Glob `./*.cron` aufgenommen. Aktiv nach Web-Image-Rebuild (`ddev restart` / Deploy).
   **Lokal bewusst nicht aktiviert:** die Demo-Systeme zeigen auf Platzhalter-URLs, die der Probe
   auf „down" flippen und den kuratierten Seed überschreiben würde.
-- **„Zeitraum: 30 Tage ▾"-Selektor** (Wireframe) — Fenster ist aktuell fest 30 Tage; Endpoint müsste
-  einen Range-Query-Param annehmen.
+- ~~**„Zeitraum: 30 Tage ▾"-Selektor**~~ ✓ erledigt — `GET /v1/portal/systems?days=` nimmt 7/30/90
+  (sonst Fallback 30), liefert `windowDays` + `availableWindows`; `SystemsPage` hat den Selektor,
+  Sparkline-Balken + %/Latenz-Labels folgen der Auswahl.
