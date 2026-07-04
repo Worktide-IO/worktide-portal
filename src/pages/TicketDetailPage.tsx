@@ -53,7 +53,22 @@ export function TicketDetailPage() {
             <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{ticket.statusLabel}</span>
           </div>
         </div>
-        {ticket.projectName ? <p className="mt-1 text-xs text-slate-500">{ticket.projectName}</p> : null}
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+          {ticket.projectName ? <span>{ticket.projectName}</span> : null}
+          {ticket.sla.status !== 'none' ? (
+            <span
+              className={
+                ticket.sla.status === 'overdue' || ticket.sla.status === 'missed'
+                  ? 'text-red-600'
+                  : ticket.sla.status === 'met'
+                    ? 'text-green-600'
+                    : 'text-slate-500'
+              }
+            >
+              SLA: {ticket.sla.label}
+            </span>
+          ) : null}
+        </div>
         {ticket.description ? <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">{ticket.description}</p> : null}
       </div>
 
