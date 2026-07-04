@@ -1,9 +1,16 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Download, Paperclip } from 'lucide-react';
 
-import { portalApi, type PortalTicketDetail } from '@/lib/portal';
+import { portalApi, type PortalAttachment, type PortalTicketDetail } from '@/lib/portal';
 import { PriorityBadge } from '@/components/PriorityBadge';
+
+function formatBytes(n: number | null): string {
+  if (n === null) return '';
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+}
 
 export function TicketDetailPage() {
   const { id = '' } = useParams();
@@ -11,6 +18,9 @@ export function TicketDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [reply, setReply] = useState('');
   const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function load() {
     portalApi
@@ -19,6 +29,35 @@ export function TicketDetailPage() {
       .catch(() => setError('Ticket nicht gefunden oder kein Zugriff.'));
   }
   useEffect(load, [id]);
+
+  async function uploadFiles(list: FileList | null) {
+    if (!list || list.length === 0) return;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      for (const file of Array.from(list)) {
+        await portalApi.uploadAttachment(id, file);
+      }
+      load();
+    } catch (err) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setUploadError(detail ?? 'Anhang konnte nicht hochgeladen werden.');
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function download(a: PortalAttachment) {
+    const blob = await portalApi.downloadAttachment(id, a.id);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = a.name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
 
   async function sendReply(e: React.FormEvent) {
     e.preventDefault();
@@ -71,6 +110,54 @@ export function TicketDetailPage() {
         </div>
         {ticket.description ? <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">{ticket.description}</p> : null}
       </div>
+
+      <section className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <Paperclip className="size-4 text-slate-400" /> Anhänge
+          </h2>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 disabled:opacity-50"
+          >
+            <Paperclip className="size-3.5" /> {uploading ? 'Lädt hoch…' : 'Datei anhängen'}
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              uploadFiles(e.target.files);
+              e.target.value = ''; // allow re-selecting the same file
+            }}
+          />
+        </div>
+        {uploadError ? <p className="text-sm text-red-600">{uploadError}</p> : null}
+        {ticket.attachments.length === 0 ? (
+          <p className="text-sm text-slate-500">Keine Anhänge.</p>
+        ) : (
+          <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
+            {ticket.attachments.map((a) => (
+              <li key={a.id}>
+                <button
+                  type="button"
+                  onClick={() => download(a)}
+                  className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-slate-50"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <Download className="size-4 shrink-0 text-slate-400" />
+                    <span className="truncate text-sm text-slate-700">{a.name}</span>
+                  </span>
+                  <span className="shrink-0 text-xs text-slate-400">{formatBytes(a.size)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-slate-700">Verlauf</h2>

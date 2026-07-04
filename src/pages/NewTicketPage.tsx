@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Paperclip, X } from 'lucide-react';
 
 import { portalApi } from '@/lib/portal';
+
+function formatBytes(n: number): string {
+  if (n < 1024) return `${n} B`;
+  if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`;
+  return `${(n / 1024 / 1024).toFixed(1)} MB`;
+}
 
 const PRIORITIES: { value: string; label: string }[] = [
   { value: 'low', label: 'Niedrig' },
@@ -16,8 +22,14 @@ export function NewTicketPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('normal');
+  const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function addFiles(list: FileList | null) {
+    if (list) setFiles((prev) => [...prev, ...Array.from(list)]);
+  }
 
   // With a single external project the backend picks it automatically; if the
   // customer has several it returns 400 asking for projectId — surfaced below.
@@ -28,6 +40,10 @@ export function NewTicketPage() {
     setError(null);
     try {
       const created = await portalApi.createTicket({ title, description, priority });
+      // Attach files to the freshly-created ticket (best-effort, sequential).
+      for (const file of files) {
+        await portalApi.uploadAttachment(created.id, file);
+      }
       navigate(`/tickets/${created.id}`);
     } catch (err) {
       const detail =
@@ -76,6 +92,45 @@ export function NewTicketPage() {
             ))}
           </select>
         </label>
+        <div className="text-sm">
+          <span className="block">Anhänge</span>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="mt-1 inline-flex cursor-pointer items-center gap-1.5 rounded border border-slate-300 px-3 py-2 text-slate-600 hover:border-slate-400"
+          >
+            <Paperclip className="size-4" /> Dateien auswählen
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(e) => {
+              addFiles(e.target.files);
+              e.target.value = '';
+            }}
+          />
+          {files.length > 0 ? (
+            <ul className="mt-2 space-y-1">
+              {files.map((f, i) => (
+                <li key={i} className="flex items-center justify-between gap-3 rounded bg-slate-50 px-2.5 py-1.5 text-xs">
+                  <span className="min-w-0 truncate text-slate-700">
+                    {f.name} <span className="text-slate-400">· {formatBytes(f.size)}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
+                    className="shrink-0 text-slate-400 hover:text-red-600"
+                    aria-label="Entfernen"
+                  >
+                    <X className="size-3.5" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         <button
           type="submit"
