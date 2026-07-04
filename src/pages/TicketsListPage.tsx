@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { Plus } from 'lucide-react';
 
 import { portalApi, type PortalTicket } from '@/lib/portal';
+import { PriorityBadge } from '@/components/PriorityBadge';
 
 export function TicketsListPage() {
   const [tickets, setTickets] = useState<PortalTicket[] | null>(null);
@@ -36,12 +37,18 @@ export function TicketsListPage() {
       <ul className="divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 bg-white">
         {(tickets ?? []).map((t) => (
           <li key={t.id}>
-            <Link to={`/tickets/${t.id}`} className="flex items-center justify-between px-4 py-3 hover:bg-slate-50">
-              <div>
-                <div className="font-medium">{t.title}</div>
-                <div className="text-xs text-slate-500">{t.projectName}</div>
+            <Link to={`/tickets/${t.id}`} className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-slate-50">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-slate-400">{t.identifier}</span>
+                  <span className="truncate font-medium">{t.title}</span>
+                </div>
+                {t.projectName ? <div className="text-xs text-slate-500">{t.projectName}</div> : null}
               </div>
-              <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{t.statusLabel}</span>
+              <div className="flex shrink-0 items-center gap-2">
+                <PriorityBadge ticket={t} />
+                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{t.statusLabel}</span>
+              </div>
             </Link>
           </li>
         ))}

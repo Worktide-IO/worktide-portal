@@ -1,5 +1,8 @@
 # Plan: Kundenportal — Phase 1 (Support-Portal: Tickets lesen/erstellen/antworten)
 
+> Design-Referenz: `wireframes/WIREFRAMES.md` (8 Screens) · Abgleich Wireframe↔Plan mit
+> verifizierten Backend-Fakten: `RECONCILIATION.md`.
+
 ## Context
 
 Roadmap-Phase E: pro Workspace ein Kundenportal, in dem freigeschaltete CRM-Kontakte eine
@@ -48,16 +51,25 @@ genau dafür gebaut). Fixe Portal-Rechte in P1; die granulare Capability×Role-M
 5. **`PortalController`** (neu, `src/Controller/Api/Portal/`, alle Routen `^/v1/portal`, `ROLE_PORTAL`):
    - `GET /v1/portal/me` → `{ contact, customer, workspaceName, features }` (kuratiert).
    - `GET /v1/portal/tickets` → Tasks der erlaubten Projekte, ohne `isHiddenForConnectUsers`, als
-     **kuratierte DTOs** (id, title, statusLabel, dueOn, createdAt, projectName) — **kein**
-     priorityScore/assignees/interne Felder.
+     **kuratierte DTOs** (id, **identifier**, title, statusLabel, **priorityLabel**, dueOn, createdAt,
+     projectName). `identifier` = `Task.identifier` (VARCHAR 24, Form `WORK-142`, existiert bereits) →
+     der Ticket-Key aus dem Wireframe. `priorityLabel` aus `Task.priority` (`TaskPriority`) — im
+     Wireframe als Hoch/Mittel/Niedrig-Badge. Weiterhin **kein** assignees/interne Felder. **Nicht in
+     P1:** die SLA-Spalte (SLA hängt an `CustomerAgreement`, nicht am Task) → weglassen. „Wartet auf
+     mich"-Filter erst, wenn ein passender `TaskStatus` workspaceseitig existiert; P1 liefert
+     Alle/Offen/Erledigt.
    - `GET /v1/portal/tickets/{id}` → ein Ticket (via Resolver autorisiert) + öffentliche Kommentare
      (`isHiddenForConnectUsers = false`), Autor als Anzeigename.
    - `POST /v1/portal/tickets` → neuer `Task` in einem erlaubten Projekt (bei mehreren: `projectId`
      aus der erlaubten Menge im Body; bei genau einem: dieses; bei keinem: 409 „kein Portal-Projekt").
-     `createdVia = portal`, Ersteller-Kontakt vermerkt, Status = Workspace-Default-Offen.
+     `createdVia = portal`, Ersteller-Kontakt vermerkt, Status = Workspace-Default-Offen. Body-Felder:
+     `title`, `description`, optional `priority` (aus `TaskPriority`; Default `Normal`), ggf. `projectId`.
+     **Nicht in P1:** Datei-Anhang (📎) beim Erstellen und KI-Strukturierung (Freitext → Titel/Priorität/
+     Projektzuordnung, via `AIRecommendation`/Anthropic) — P1 ist ein reines Textformular.
    - `POST /v1/portal/tickets/{id}/comments` → `Comment` (`isHiddenForConnectUsers = false`,
      Autor = Portal-User) am autorisierten Ticket.
-6. **`createdVia`-Enum** um `Portal` erweitern (+ FE-Typ). Voraussichtlich **keine Schema-Migration**
+6. **`createdVia`-Enum** (`src/Entity/Enum/TaskCreatedVia.php`) um `Portal` erweitern (+ FE-Typ).
+   Voraussichtlich **keine Schema-Migration**
    (nutzt linkedUser, roles, `Workspace.settings`, `PasswordResetToken`); nur falls `created_via` ein
    DB-Enum ist, kleine Migration.
 
@@ -68,6 +80,12 @@ genau dafür gebaut). Fixe Portal-Rechte in P1; die granulare Capability×Role-M
    ROLE_USER). Verifizieren, dass ein Portal-JWT auf `GET /v1/tasks`/`POST /v1/tasks` **403** bekommt.
 8. **Toggle:** `Workspace.settings.portal = { enabled: bool, features: {...} }`. Alle Portal-Endpoints
    und die Freischaltung verweigern, wenn `enabled` fehlt/false. (Kein Schema — bestehendes JSON-Feld.)
+   **`features`-Namespace jetzt festlegen** (Contract-Stabilität über alle Phasen), auch wenn P1 nur
+   `tickets` implementiert: `{ tickets, dashboard, monitoring, agreements, ideas, social, forms,
+   documents }` (alle `bool`; in P1 alles außer `tickets` = false). `GET /v1/portal/me → { …, features }`
+   liefert die Map; das FE rendert daraus die Navigation. Die Keys spiegeln die 8 Wireframe-Screens und
+   haben — außer `tickets` — bereits Backend-Entities (siehe `RECONCILIATION.md`), sind später also
+   „DTO über bestehende Entity", kein neues Subsystem.
 
 ---
 
@@ -76,9 +94,12 @@ genau dafür gebaut). Fixe Portal-Rechte in P1; die granulare Capability×Role-M
    aus `worktide-web` kopieren, nicht importieren). Eigener `authProvider` (Passwort-Login, JWT/Refresh,
    eigene Storage-Keys `wtp.*`), `api`-Axios mit `VITE_API_BASE` (Dev: `https://api.worktide.ddev.site/v1`).
    Eigene DDEV-Config analog `worktide-web/.ddev/`.
-10. **Seiten** (minimal, kein Staff-Sidebar): `/login`, `/set-password?token=`, `/tickets` (Liste),
-    `/tickets/:id` (Detail + Kommentar-Thread + Antwortfeld), `/tickets/new`. Ruft ausschließlich
-    `/v1/portal/*` + `/v1/auth/*`. Reduzierte, kundenfreundliche Sprache/Optik.
+10. **Seiten**: `/login`, `/set-password?token=`, `/tickets` (Liste), `/tickets/:id` (Detail +
+    Kommentar-Thread + Antwortfeld), `/tickets/new`. Ruft ausschließlich `/v1/portal/*` + `/v1/auth/*`.
+    Reduzierte, kundenfreundliche Sprache/Optik. **Navigation wie im Wireframe** (Dashboard, Tickets,
+    Monitoring, Angebote & Verträge, Ziele & Ideen, Wissen/Dateien, Einstellungen), aber alle
+    Nicht-Ticket-Einträge **gesperrt/„demnächst"** anhand `features` aus `/portal/me` — so passt die
+    Optik zum Wireframe und die spätere Freischaltung braucht keinen FE-Umbau.
 11. **Staff-Seite (`worktide-web`)**: auf der Kontakt-Detailansicht ein „Portal-Zugang freischalten/
     entziehen"-Button (ruft die Grant/Revoke-Action); Badge „Portal aktiv" wenn `linkedUser` gesetzt.
     Plus ein Workspace-Setting-Schalter „Kundenportal aktiv".
@@ -105,4 +126,11 @@ Gegenprobe: Staff-Login funktioniert im Portal **nicht** (kein ROLE_PORTAL).
 ## Nicht in Scope (spätere Phasen)
 - Granulare Capability×Role-Matrix pro Kontakt (Rechnungen/Monitoring/Verträge sichtbar schalten).
 - Magic-Link/SSO-Login, eigene Domain-Auslieferung/Branding pro Workspace, Mercure-Live-Updates.
-- Weitere Portal-Bausteine aus der Ideensammlung (Angebote, Monitoring, KI, Dateien, Digest).
+- **Tickets-Screen, aus P1 zurückgestellt:** SLA-Spalte, Datei-Anhang beim Erstellen, KI-Strukturierung,
+  @Mention, „Wartet auf mich"-Filter (siehe §5). (Ticket-Keys „WORK-142" sind via `Task.identifier`
+  bereits in P1 dabei.)
+- **Weitere Wireframe-Screens (2–8)** hinter `features`-Flags. Anders als früher angenommen meist
+  „Portal-DTO über bestehende Entity", kein neues Subsystem — Backing laut `RECONCILIATION.md`:
+  Monitoring (`CustomerSystem`+`InboundEvent`), Angebote/Verträge (`CustomerAgreement`+`ServiceSubscription`),
+  Social (`SocialPost`), Fragebogen (`PublicForm`+`PublicFormSubmission`), Pitch (`AIRecommendation`),
+  Dateien (`Document*`). **Echt net-new:** kundenseitige Invoice, KPI-Goal, Idea/Vote.
