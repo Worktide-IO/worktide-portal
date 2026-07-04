@@ -256,3 +256,25 @@ im Ticket-Detail.
 **Ehrliche Einschränkung:** die Policy ist ein sinnvoller Default keyed auf Priorität, kein
 kundenspezifischer SLA-Vertrag. Ein strukturiertes SLA-Modell (Reaktions-/Lösungszeiten pro
 Agreement, Pausieren bei „wartet auf Kunde") bleibt späterer Ausbau.
+
+---
+
+## Umgesetzt nach P1 — Brainstorming-Board (Screen 5)
+
+> Ausgeliefert 2026-07-04. Der „Brainstorming"-Abschnitt der Ziele-&-Ideen-Seite fehlte komplett
+> (kein Modell). Jetzt gibt es ein echtes, kundengescopetes Notiz-Board.
+
+**Backend (`worktide`):** net-new **`BrainstormNote`** — ein freier Beitrag auf dem Board eines
+`Customer` (workspace-scoped): `body`, `origin` (wiederverwendet `IdeaOrigin`: customer/agency/ai),
+`authorContact` (nullable) + denormalisierter `authorName`. **`PortalBrainstormController`**
+(`GET/POST /v1/portal/brainstorm`, Feature-Gate `ideas`): Liste chronologisch, POST hängt einen
+Beitrag des Portal-Users an (origin=customer, `isMine` im DTO). Kein Staff-`User` wird geleakt (nur
+der Anzeigename). Migration `Version20260704155932`; Functional-Test (Liste, Append, isMine, origin).
+Suite 182 grün.
+
+**Frontend (`worktide-portal`, `IdeasPage`):** „Brainstorming"-Sektion mit chronologischem
+Beitrags-Stream (farbcodierter Herkunfts-Punkt customer/agency/ai, KI-Badge auf AI-Beiträgen,
+„Sie"-Hervorhebung eigener Beiträge) und einem „Beitrag schreiben…"-Composer.
+
+**Offen:** KI-Moderation/-Zusammenfassung (Wireframe „🤖 KI moderiert") — das Board rendert
+AI-Beiträge, erzeugt sie aber noch nicht automatisch; separates KI-Thema.
