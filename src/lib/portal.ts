@@ -60,7 +60,22 @@ export type PortalSystem = {
   url: string | null;
   hostingProvider: string | null;
   isActive: boolean;
+  status: string; // operational | degraded | down | maintenance | inactive
   statusLabel: string;
+  uptimePct: number | null;
+  avgResponseMs: number | null;
+  uptimeDays: { day: string; uptimePct: number }[];
+};
+
+export type PortalSystemIncident = {
+  id: string;
+  systemName: string;
+  kind: string; // outage | degraded | maintenance
+  kindLabel: string;
+  title: string;
+  startedAt: string;
+  resolvedAt: string | null;
+  open: boolean;
 };
 
 // Angebote & Verträge. Read-only: offers/contracts (line-items live in the
@@ -257,7 +272,9 @@ export const portalApi = {
     api.post<PortalComment>(`/portal/tickets/${id}/comments`, { content }).then((r) => r.data),
 
   systems: () =>
-    api.get<{ systems: PortalSystem[] }>('/portal/systems').then((r) => r.data.systems),
+    api
+      .get<{ systems: PortalSystem[]; incidents: PortalSystemIncident[] }>('/portal/systems')
+      .then((r) => r.data),
 
   dashboard: () => api.get<PortalDashboard>('/portal/dashboard').then((r) => r.data),
 
