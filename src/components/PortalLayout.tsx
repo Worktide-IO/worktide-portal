@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   LogOut,
+  Presentation,
   Ticket,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router';
@@ -32,6 +33,7 @@ const NAV: NavItem[] = [
   { key: 'monitoring', label: 'Monitoring', icon: Gauge, to: '/monitoring' },
   { key: 'agreements', label: 'Angebote & Verträge', icon: FileText, to: '/agreements' },
   { key: 'ideas', label: 'Ziele & Ideen', icon: Lightbulb, to: '/ideas' },
+  { key: 'proposals', label: 'Vorschläge', icon: Presentation, to: '/proposals' },
   { key: 'documents', label: 'Wissen / Dateien', icon: FolderKanban, to: '/documents' },
   { key: 'forms', label: 'Fragebögen', icon: ClipboardList, to: '/forms' },
 ];
