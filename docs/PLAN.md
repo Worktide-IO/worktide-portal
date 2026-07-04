@@ -232,3 +232,27 @@ liefert je Angebot `lineItems`, `totalCents`, `currency` und `totalIsRecurring` 
 
 **Frontend (`worktide-portal`, `AgreementsPage`):** Positions-Tabelle je Angebot/Vertrag mit
 Mengen-Präfix, Zeilenbeträgen und „Summe / Monat (netto)"- bzw. „Summe (netto)"-Zeile.
+
+---
+
+## Umgesetzt nach P1 — Ticket-SLA-Spalte (Screen 2)
+
+> Ausgeliefert 2026-07-04. In P1 bewusst zurückgestellt („SLA hängt an CustomerAgreement, nicht am
+> Task", siehe §5). Es gibt weiterhin **kein** strukturiertes SLA-Vertragsmodell (der „sla"-
+> AgreementType ist nur ein Dokument). Daher ist die SLA **abgeleitet**, nicht aus einem Vertrag gelesen.
+
+**Backend (`worktide`):** net-new Service **`PortalSlaCalculator`**. Er berechnet je Ticket ein
+SLA-Ziel aus einer **Default-Policy pro Priorität** (Std.: urgent 2 · high 4 · normal 24 · low 72),
+pro Workspace via `settings.portal.sla` ({priority: hours}) überschreibbar (0/null → keine SLA). Der
+Status kommt aus echten Timestamps: offen + Frist in der Zukunft → `due` („in 4 Std."/„in 2 Tagen"),
+offen + überfällig → `overdue`, abgeschlossen ≤ Frist → `met` („erfüllt"), abgeschlossen > Frist →
+`missed`, keine SLA → `none` („—"). `PortalTicketsController` liefert `sla {status,label,dueAt}` in
+Liste + Detail. Unit-Test `PortalSlaCalculatorTest` (alle Zustände + Label-Formate). Suite 181 grün.
+
+**Frontend (`worktide-portal`):** SLA-Spalte in der Ticket-Liste (`SlaBadge`, farbcodiert:
+grau fällig · rot überschritten/verpasst · grün erfüllt; „—" ausgeblendet) und eine „SLA: …"-Zeile
+im Ticket-Detail.
+
+**Ehrliche Einschränkung:** die Policy ist ein sinnvoller Default keyed auf Priorität, kein
+kundenspezifischer SLA-Vertrag. Ein strukturiertes SLA-Modell (Reaktions-/Lösungszeiten pro
+Agreement, Pausieren bei „wartet auf Kunde") bleibt späterer Ausbau.

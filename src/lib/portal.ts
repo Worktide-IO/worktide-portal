@@ -4,6 +4,12 @@ import { api } from '@/lib/api';
 // docs/PLAN.md + docs/RECONCILIATION.md). Deliberately NARROW — no internal
 // fields (assignees, tracker, priority score, …).
 
+export type PortalTicketSla = {
+  status: string; // due | overdue | met | missed | none
+  label: string; // "in 4 Std." | "überschritten" | "erfüllt" | "—"
+  dueAt: string | null;
+};
+
 export type PortalTicket = {
   id: string;
   identifier: string; // human key, e.g. WORK-142
@@ -15,6 +21,7 @@ export type PortalTicket = {
   dueOn: string | null;
   createdAt: string;
   updatedAt: string;
+  sla: PortalTicketSla;
 };
 
 export type PortalComment = {
