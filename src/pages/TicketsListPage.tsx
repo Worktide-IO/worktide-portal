@@ -2,10 +2,30 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { Plus } from 'lucide-react';
 
-import { portalApi, type PortalTicket } from '@/lib/portal';
+import { portalApi, type PortalTicket, type PortalTicketSla } from '@/lib/portal';
 import { PriorityBadge } from '@/components/PriorityBadge';
 
 const ALL = '__all__';
+
+// SLA cell — colored by status. Hidden entirely when there's no SLA.
+const SLA_STYLES: Record<string, string> = {
+  due: 'text-slate-500',
+  overdue: 'text-red-600 font-medium',
+  met: 'text-green-600',
+  missed: 'text-red-600 font-medium',
+};
+
+export function SlaBadge({ sla }: { sla: PortalTicketSla }) {
+  if (sla.status === 'none') return null;
+  return (
+    <span
+      className={`hidden w-24 text-right text-xs tabular-nums sm:inline ${SLA_STYLES[sla.status] ?? 'text-slate-500'}`}
+      title="SLA"
+    >
+      {sla.label}
+    </span>
+  );
+}
 
 export function TicketsListPage() {
   const [tickets, setTickets] = useState<PortalTicket[] | null>(null);
@@ -71,6 +91,7 @@ export function TicketsListPage() {
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
                   <PriorityBadge ticket={t} />
+                  <SlaBadge sla={t.sla} />
                   <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{t.statusLabel}</span>
                   <span className="hidden w-20 text-right text-xs text-slate-400 sm:inline" title="Zuletzt aktualisiert">
                     {new Date(t.updatedAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}
