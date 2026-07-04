@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FileCheck2, FileText, Repeat } from 'lucide-react';
+import { FileCheck2, FileText, PenLine, Repeat } from 'lucide-react';
 
 import { portalApi, type PortalAgreement, type PortalAgreements, type PortalSubscription } from '@/lib/portal';
 
@@ -19,9 +19,28 @@ function formatPrice(cents: number, currency: string): string {
   }
 }
 
-function AgreementCard({ a }: { a: PortalAgreement }) {
+function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: PortalAgreement) => void }) {
   const valid = formatDate(a.validUntil);
   const signed = formatDate(a.signedOn);
+  const [signOpen, setSignOpen] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function sign(e: React.FormEvent) {
+    e.preventDefault();
+    if (!fullName.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      onChange(await portalApi.signAgreement(a.id, fullName.trim()));
+      setSignOpen(false);
+    } catch {
+      setError('Signatur fehlgeschlagen.');
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="rounded-lg border border-slate-200 bg-white p-4">
       <div className="flex items-start justify-between gap-3">
@@ -38,7 +57,7 @@ function AgreementCard({ a }: { a: PortalAgreement }) {
         </span>
       </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
-        {signed ? <span>Signiert am {signed}</span> : null}
+        {a.signedBy ? <span>Signiert von {a.signedBy}</span> : signed ? <span>Signiert am {signed}</span> : null}
         {valid ? <span>Gültig bis {valid}</span> : null}
         {a.hasDocument ? (
           <span className="inline-flex items-center gap-1 text-slate-600">
@@ -46,6 +65,44 @@ function AgreementCard({ a }: { a: PortalAgreement }) {
           </span>
         ) : null}
       </div>
+
+      {a.canSign ? (
+        <div className="mt-3">
+          {!signOpen ? (
+            <button
+              type="button"
+              onClick={() => setSignOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+            >
+              <PenLine className="size-4" /> Digital signieren
+            </button>
+          ) : (
+            <form onSubmit={sign} className="space-y-2">
+              <label className="block text-sm">
+                Ihr vollständiger Name (Unterschrift)
+                <input
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  autoFocus
+                  className="mt-1 w-full max-w-sm rounded border border-slate-300 px-3 py-2 text-sm"
+                />
+              </label>
+              <p className="text-xs text-slate-400">
+                Mit dem Signieren nehmen Sie das Angebot verbindlich an.
+              </p>
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
+              <div className="flex gap-2">
+                <button type="submit" disabled={busy || !fullName.trim()} className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+                  {busy ? 'Signieren…' : 'Verbindlich signieren'}
+                </button>
+                <button type="button" onClick={() => setSignOpen(false)} className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-600">
+                  Abbrechen
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -105,6 +162,10 @@ export function AgreementsPage() {
   if (error) return <p className="text-sm text-red-600">{error}</p>;
   if (!data) return <p className="text-sm text-slate-500">Lädt…</p>;
 
+  function replaceAgreement(updated: PortalAgreement) {
+    setData((prev) => (prev ? { ...prev, agreements: prev.agreements.map((a) => (a.id === updated.id ? updated : a)) } : prev));
+  }
+
   const offers = data.agreements.filter((a) => OFFER_STATUSES.has(a.status));
   const contracts = data.agreements.filter((a) => !OFFER_STATUSES.has(a.status));
   const projectOffers = data.projectOffers ?? [];
@@ -122,7 +183,7 @@ export function AgreementsPage() {
       {offers.length > 0 ? (
         <Section icon={FileText} title={`Angebote (${offers.length})`}>
           {offers.map((a) => (
-            <AgreementCard key={a.id} a={a} />
+            <AgreementCard key={a.id} a={a} onChange={replaceAgreement} />
           ))}
         </Section>
       ) : null}
@@ -130,7 +191,7 @@ export function AgreementsPage() {
       {contracts.length > 0 ? (
         <Section icon={FileCheck2} title={`Verträge (${contracts.length})`}>
           {contracts.map((a) => (
-            <AgreementCard key={a.id} a={a} />
+            <AgreementCard key={a.id} a={a} onChange={replaceAgreement} />
           ))}
         </Section>
       ) : null}
@@ -163,7 +224,7 @@ export function AgreementsPage() {
       ) : null}
 
       <p className="pt-1 text-xs text-slate-400">
-        Digitale Freigabe/Signatur, Positionsdetails und Rechnungen folgen in einem späteren Schritt.
+        Positionsdetails und Rechnungen folgen in einem späteren Schritt.
       </p>
     </div>
   );

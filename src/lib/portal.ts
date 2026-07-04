@@ -76,6 +76,8 @@ export type PortalAgreement = {
   signedOn: string | null;
   validUntil: string | null;
   hasDocument: boolean;
+  canSign: boolean;
+  signedBy: string | null;
 };
 
 export type PortalSubscription = {
@@ -257,6 +259,9 @@ export const portalApi = {
   dashboard: () => api.get<PortalDashboard>('/portal/dashboard').then((r) => r.data),
 
   agreements: () => api.get<PortalAgreements>('/portal/agreements').then((r) => r.data),
+
+  signAgreement: (id: string, fullName: string) =>
+    api.post<PortalAgreement>(`/portal/agreements/${id}/sign`, { fullName }).then((r) => r.data),
 
   goals: () => api.get<{ goals: PortalGoal[] }>('/portal/goals').then((r) => r.data.goals),
 
