@@ -30,7 +30,7 @@ const NAV: NavItem[] = [
   { key: 'tickets', label: 'Tickets', icon: Ticket, to: '/tickets' },
   { key: 'monitoring', label: 'Monitoring', icon: Gauge, to: '/monitoring' },
   { key: 'agreements', label: 'Angebote & Verträge', icon: FileText, to: '/agreements' },
-  { key: 'ideas', label: 'Ziele & Ideen', icon: Lightbulb },
+  { key: 'ideas', label: 'Ziele & Ideen', icon: Lightbulb, to: '/ideas' },
   { key: 'documents', label: 'Wissen / Dateien', icon: FolderKanban },
 ];
 
