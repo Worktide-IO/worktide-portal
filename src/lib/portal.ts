@@ -38,6 +38,14 @@ export type PortalMe = {
   features: PortalFeatures;
 };
 
+// Dashboard (post-login landing). Only truthfully-backed aggregates —
+// budget/blockers/activity are deferred (see docs/RECONCILIATION.md).
+export type PortalDashboard = {
+  openTickets: { total: number; highPriority: number };
+  systems: { active: number; total: number } | null; // null when monitoring off
+  projects: { id: string; name: string; progressPct: number; openTasks: number }[];
+};
+
 // Monitoring screen: the customer's systems inventory + managed status.
 // NOTE: no uptime/latency/incidents — that data isn't in the backend model
 // yet (see docs/RECONCILIATION.md). We show what's real.
@@ -84,4 +92,6 @@ export const portalApi = {
 
   systems: () =>
     api.get<{ systems: PortalSystem[] }>('/portal/systems').then((r) => r.data.systems),
+
+  dashboard: () => api.get<PortalDashboard>('/portal/dashboard').then((r) => r.data),
 };
