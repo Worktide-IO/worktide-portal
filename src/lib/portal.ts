@@ -168,6 +168,32 @@ export type PortalFormDetail = {
   fields: PortalFormField[];
 };
 
+// Ideen-Pitch (screen 7): project proposals the customer reviews.
+export type PortalProposalVariant = {
+  label: string;
+  effortHours?: number;
+  costCents?: number;
+};
+
+export type PortalProposal = {
+  id: string;
+  projectName: string;
+  title: string;
+  rationale: string | null;
+  expectedBenefit: string | null;
+  effortHours: number | null;
+  costCents: number | null;
+  currency: string;
+  timeframeText: string | null;
+  status: string; // new | in_review | accepted | rejected
+  statusLabel: string;
+  origin: string; // ai | agency
+  originLabel: string;
+  variants: PortalProposalVariant[];
+  customerFeedback: string | null;
+  ticketIdentifier: string | null;
+};
+
 export type NewTicketInput = {
   title: string;
   description?: string;
@@ -228,4 +254,17 @@ export const portalApi = {
 
   submitForm: (id: string, values: Record<string, unknown>) =>
     api.post<{ success: boolean; message: string | null }>(`/portal/forms/${id}/submit`, values).then((r) => r.data),
+
+  proposals: () => api.get<{ proposals: PortalProposal[] }>('/portal/proposals').then((r) => r.data.proposals),
+
+  acceptProposal: (id: string, variantIndex?: number) =>
+    api
+      .post<PortalProposal>(`/portal/proposals/${id}/accept`, variantIndex === undefined ? {} : { variantIndex })
+      .then((r) => r.data),
+
+  rejectProposal: (id: string) =>
+    api.post<PortalProposal>(`/portal/proposals/${id}/reject`).then((r) => r.data),
+
+  sendProposalFeedback: (id: string, message: string) =>
+    api.post<PortalProposal>(`/portal/proposals/${id}/feedback`, { message }).then((r) => r.data),
 };
