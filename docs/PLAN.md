@@ -134,3 +134,41 @@ Gegenprobe: Staff-Login funktioniert im Portal **nicht** (kein ROLE_PORTAL).
   Monitoring (`CustomerSystem`+`InboundEvent`), Angebote/Verträge (`CustomerAgreement`+`ServiceSubscription`),
   Social (`SocialPost`), Fragebogen (`PublicForm`+`PublicFormSubmission`), Pitch (`AIRecommendation`),
   Dateien (`Document*`). **Echt net-new:** kundenseitige Invoice, KPI-Goal, Idea/Vote.
+
+---
+
+## Umgesetzt nach P1 — Monitoring · Live-Metriken (Screen 3)
+
+> Ausgeliefert 2026-07-04 (worktide `main` `df166cf`, worktide-portal `main` `d5acc10`).
+> **Abweichung vom P1-Vorausblick:** oben stand Monitoring = `CustomerSystem`+`InboundEvent`.
+> Tatsächlich gebaut wurde ein eigenes, schlankes Uptime-/Incident-Subsystem (kein InboundEvent) —
+> `CustomerSystem` bleibt die Inventar-Quelle, Metriken/Störungen kommen aus neuen Entities.
+
+**Backend (`worktide`):**
+- **`SystemUptimeDay`** (net-new) — ein Tages-Rollup pro `CustomerSystem`: `uptimePct` (0–100),
+  `avgResponseMs`, `sampleCount`; Unique (system, day). Repo: `findSince(systems, since)`,
+  `findOneForDay(system, day)`.
+- **`SystemIncident`** + **`IncidentKind`** (`outage`/`degraded`/`maintenance`, net-new) — die Liste
+  „Vorfälle & Wartung". Ein **offener** Incident (`resolvedAt = null`) bestimmt den Live-Status
+  (Outage → Störung, Degraded → Langsam, Maintenance → Wartung, sonst → Online). Repo:
+  `findOpenOfKind`, `findRecentForSystems`.
+- **`app:monitoring:probe`** (Command) — HTTP-Probe je aktivem System mit URL (Timeout 8 s):
+  up / degraded (>2000 ms) / down (≥400 od. Fehler); schreibt/aktualisiert den heutigen
+  `SystemUptimeDay` und öffnet/schließt Outage-/Degraded-Incidents automatisch. Wartungsfenster
+  werden von Staff angelegt.
+- **`PortalSystemsController`** (`GET /v1/portal/systems`, Feature-Gate `monitoring`) liefert je System
+  `status`/`statusLabel`, `uptimePct` + `avgResponseMs` (Ø über 30 Tage), `uptimeDays`
+  (Sparkline-Serie) und die `incidents`-Liste. **Sicherheit unverändert:** DTO lässt
+  `credentialsNotes`/`notes`/`adminLoginUrl`/`stagingUrl` weg.
+- Migration `Version20260704143245`; Functional-Test in `PortalEndpointsTest` (abgeleiteter Status,
+  Aggregate, Secret-Weglassung); Suite 172 Tests grün.
+
+**Frontend (`worktide-portal`):** `SystemsPage` gerendert mit Status-Punkt + Badge, Uptime %/Latenz,
+30-Balken-Uptime-Sparkline, Offene-Störung-Banner und „Vorfälle & Wartung"-Liste. Typen in
+`src/lib/portal.ts` (`PortalSystem` erweitert, neu `PortalSystemIncident`).
+
+**Offene Follow-ups (Monitoring):**
+- **Probe schedulen** — `app:monitoring:probe` läuft noch manuell; ohne Cron/Symfony-Scheduler
+  entstehen im echten Betrieb keine Rollups (nur der Demo-Seed füllt sie).
+- **„Zeitraum: 30 Tage ▾"-Selektor** (Wireframe) — Fenster ist aktuell fest 30 Tage; Endpoint müsste
+  einen Range-Query-Param annehmen.
