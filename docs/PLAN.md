@@ -168,7 +168,10 @@ Gegenprobe: Staff-Login funktioniert im Portal **nicht** (kein ROLE_PORTAL).
 `src/lib/portal.ts` (`PortalSystem` erweitert, neu `PortalSystemIncident`).
 
 **Offene Follow-ups (Monitoring):**
-- **Probe schedulen** — `app:monitoring:probe` läuft noch manuell; ohne Cron/Symfony-Scheduler
-  entstehen im echten Betrieb keine Rollups (nur der Demo-Seed füllt sie).
+- ~~**Probe schedulen**~~ ✓ erledigt — `.ddev/web-build/worktide-monitoring-probe.cron` fährt
+  `app:monitoring:probe` alle 5 Min. (288 Checks/Tag = dimensionierter `sampleCount`); wird vom
+  Dockerfile-Glob `./*.cron` aufgenommen. Aktiv nach Web-Image-Rebuild (`ddev restart` / Deploy).
+  **Lokal bewusst nicht aktiviert:** die Demo-Systeme zeigen auf Platzhalter-URLs, die der Probe
+  auf „down" flippen und den kuratierten Seed überschreiben würde.
 - **„Zeitraum: 30 Tage ▾"-Selektor** (Wireframe) — Fenster ist aktuell fest 30 Tage; Endpoint müsste
   einen Range-Query-Param annehmen.
