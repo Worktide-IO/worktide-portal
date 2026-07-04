@@ -9,6 +9,7 @@ import {
   Lightbulb,
   LogOut,
   Presentation,
+  Share2,
   Ticket,
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router';
@@ -34,6 +35,7 @@ const NAV: NavItem[] = [
   { key: 'agreements', label: 'Angebote & Verträge', icon: FileText, to: '/agreements' },
   { key: 'ideas', label: 'Ziele & Ideen', icon: Lightbulb, to: '/ideas' },
   { key: 'proposals', label: 'Vorschläge', icon: Presentation, to: '/proposals' },
+  { key: 'social', label: 'Social-Freigabe', icon: Share2, to: '/social' },
   { key: 'documents', label: 'Wissen / Dateien', icon: FolderKanban, to: '/documents' },
   { key: 'forms', label: 'Fragebögen', icon: ClipboardList, to: '/forms' },
 ];
