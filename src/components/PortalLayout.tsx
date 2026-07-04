@@ -64,11 +64,11 @@ export function PortalLayout({ children }: { children: ReactNode }) {
             Kundenportal
           </Link>
           <div className="flex items-center gap-4">
-            {me ? (
+            {me?.customer ? (
               <span className="hidden text-sm text-slate-500 sm:inline">
                 {me.customer.name}
                 <span className="mx-2 text-slate-300">·</span>
-                {me.contact.firstName} {me.contact.lastName}
+                {me.contact?.firstName} {me.contact?.lastName}
               </span>
             ) : null}
             <button
