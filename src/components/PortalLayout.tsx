@@ -31,7 +31,7 @@ const NAV: NavItem[] = [
   { key: 'monitoring', label: 'Monitoring', icon: Gauge, to: '/monitoring' },
   { key: 'agreements', label: 'Angebote & Verträge', icon: FileText, to: '/agreements' },
   { key: 'ideas', label: 'Ziele & Ideen', icon: Lightbulb, to: '/ideas' },
-  { key: 'documents', label: 'Wissen / Dateien', icon: FolderKanban },
+  { key: 'documents', label: 'Wissen / Dateien', icon: FolderKanban, to: '/documents' },
 ];
 
 export function PortalLayout({ children }: { children: ReactNode }) {
