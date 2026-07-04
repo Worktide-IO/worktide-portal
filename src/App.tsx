@@ -1,0 +1,28 @@
+import type { ReactNode } from 'react';
+import { Navigate, Route, Routes } from 'react-router';
+
+import { PortalLayout } from '@/components/PortalLayout';
+import { isAuthenticated } from '@/providers/authProvider';
+import { LoginPage } from '@/pages/LoginPage';
+import { SetPasswordPage } from '@/pages/SetPasswordPage';
+import { TicketsListPage } from '@/pages/TicketsListPage';
+import { TicketDetailPage } from '@/pages/TicketDetailPage';
+import { NewTicketPage } from '@/pages/NewTicketPage';
+
+/** Gate authenticated routes; unauthenticated visitors go to /login. */
+function RequireAuth({ children }: { children: ReactNode }) {
+  return isAuthenticated() ? <PortalLayout>{children}</PortalLayout> : <Navigate to="/login" replace />;
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/set-password" element={<SetPasswordPage />} />
+      <Route path="/tickets" element={<RequireAuth><TicketsListPage /></RequireAuth>} />
+      <Route path="/tickets/new" element={<RequireAuth><NewTicketPage /></RequireAuth>} />
+      <Route path="/tickets/:id" element={<RequireAuth><TicketDetailPage /></RequireAuth>} />
+      <Route path="*" element={<Navigate to="/tickets" replace />} />
+    </Routes>
+  );
+}

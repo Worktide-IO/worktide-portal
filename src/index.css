@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* Portal is deliberately plain — a calm, reduced, customer-facing surface.
+   Brand tokens can be lifted from ../worktide-web later (copy, don't import). */
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
