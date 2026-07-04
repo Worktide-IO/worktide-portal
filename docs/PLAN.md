@@ -176,3 +176,40 @@ Gegenprobe: Staff-Login funktioniert im Portal **nicht** (kein ROLE_PORTAL).
 - ~~**„Zeitraum: 30 Tage ▾"-Selektor**~~ ✓ erledigt — `GET /v1/portal/systems?days=` nimmt 7/30/90
   (sonst Fallback 30), liefert `windowDays` + `availableWindows`; `SystemsPage` hat den Selektor,
   Sparkline-Balken + %/Latenz-Labels folgen der Auswahl.
+
+---
+
+## Umgesetzt nach P1 — Dashboard (Screen 1)
+
+> Ausgeliefert 2026-07-04. Der bisherige `PortalDashboardController` lieferte nur Offene-Tickets +
+> Projektfortschritt + Systeme-Zähler; Budget/Blocker/Aktivität waren als „kein ehrlicher Datenquell"
+> zurückgestellt. Jetzt sind alle Wireframe-Abschnitte real hinterlegt (kein Fake-Datensatz).
+
+**Backend (`worktide`, `PortalDashboardController`):** die Antwort enthält jetzt zusätzlich
+- `customerName` (Begrüßung „Willkommen zurück, …", aus `PortalAccessResolver::customer()`),
+- `budget` — **Retainer-Kachel**: getrackte Minuten **diesen Monat** (`TimeEntryRepository::sumMinutesForProjectsSince`)
+  über der Summe der `budgetMinutes` der `isRetainer`-Projekte des Kunden. `null`, wenn kein
+  Retainer-Projekt mit Budget existiert. **Ehrliche Einschränkung:** es gibt kein dediziertes
+  Monats-Kontingent-Feld; `Project.budgetMinutes` wird als Monats-Allowance gelesen (natürliche
+  Retainer-Semantik) — ein eigenes Feld ist ein späterer Refinement.
+- `systems.openIncidents` — Anzahl offener Störungen (Zeile „aktiv · N Störung(en)").
+- `blockers` — sichtbare, offene Tickets mit **offenem Vorgänger** über `TaskDependency`
+  (`TaskRepository::findBlockedPortalTickets`, spiegelt die `isBlocked`-Semantik des
+  `PriorityScoreCalculator`, re-appliziert `isHiddenForConnectUsers`).
+- `activity` — kuratierter Feed aus `DomainEventLog`, **strikt** auf sichtbare Ticket-IDs gescoped
+  (`DomainEventLogRepository::findRecentForAggregate`), Event-Namen ge-whitelistet
+  (`task.created`/`task.updated`), Actor auf **„Sie"/„Agentur"** reduziert (nie Staff-PII), Payload
+  verworfen.
+- Functional-Test in `PortalEndpointsTest` (Budget-%, Blocker-Erkennung, Actor-Redaction); Suite 174 grün.
+
+**Frontend (`worktide-portal`, `DashboardPage`):** Begrüßung mit Kundenname, drei KPI-Kacheln
+(Offene Tickets · Budget diesen Monat mit Fortschrittsbalken · System-Status mit Störungs-Zeile),
+Projektfortschritt, **Blocker**-Sektion (bernstein, klickbar) und **Aktivität**-Timeline mit
+deutscher Relativzeit.
+
+**Offene Follow-ups (Dashboard):**
+- **🔔 Benachrichtigungen** (Wireframe-Glocke) — kein Notifications-Endpoint; separates Thema.
+- **Per-Contact Capability×Role-Gating** — die Budget-Kachel ist derzeit nur datengetrieben sichtbar
+  (Retainer vorhanden), nicht pro Kontakt schaltbar (bewusst zurückgestellt, siehe „Nicht in Scope").
+- **Aktivität aus Kommentaren** — aktuell nur Task-Events; `comment.created` bräuchte Auflösung
+  Comment→Task inkl. `isHiddenForConnectUsers`-Prüfung.
