@@ -125,6 +125,22 @@ export type PortalIdea = {
   createdAt: string;
 };
 
+// Wissen / Dateien — published knowledge documents (read-only).
+export type PortalDocument = {
+  id: string;
+  name: string;
+  emoji: string | null;
+  spaceName: string | null;
+  projectName: string | null;
+  updatedAt: string;
+  publishedAt: string | null;
+};
+
+export type PortalDocumentDetail = PortalDocument & {
+  body: string | null;
+  bodyFormat: string; // markdown
+};
+
 export type NewTicketInput = {
   title: string;
   description?: string;
@@ -172,4 +188,10 @@ export const portalApi = {
 
   unvoteIdea: (id: string) =>
     api.delete<{ voteCount: number; hasVoted: boolean }>(`/portal/ideas/${id}/vote`).then((r) => r.data),
+
+  documents: () =>
+    api.get<{ documents: PortalDocument[] }>('/portal/documents').then((r) => r.data.documents),
+
+  document: (id: string) =>
+    api.get<PortalDocumentDetail>(`/portal/documents/${id}`).then((r) => r.data),
 };
