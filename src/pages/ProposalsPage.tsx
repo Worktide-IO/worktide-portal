@@ -23,28 +23,54 @@ export function ProposalsPage() {
   const [proposals, setProposals] = useState<PortalProposal[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState('new');
+  const [project, setProject] = useState('__all__');
 
   useEffect(() => {
     portalApi.proposals().then(setProposals).catch(() => setError('Vorschläge konnten nicht geladen werden.'));
   }, []);
 
+  const projects = useMemo(
+    () => [...new Set((proposals ?? []).map((p) => p.projectName))].sort(),
+    [proposals],
+  );
+
+  // Proposals in the selected project (drives both the tab counts and the list).
+  const inProject = (proposals ?? []).filter((p) => project === '__all__' || p.projectName === project);
+
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
-    for (const p of proposals ?? []) c[p.status] = (c[p.status] ?? 0) + 1;
+    for (const p of inProject) c[p.status] = (c[p.status] ?? 0) + 1;
     return c;
-  }, [proposals]);
+  }, [inProject]);
 
   function replace(updated: PortalProposal) {
     setProposals((prev) => (prev ?? []).map((p) => (p.id === updated.id ? updated : p)));
   }
 
-  const visible = (proposals ?? []).filter((p) => p.status === tab);
+  const visible = inProject.filter((p) => p.status === tab);
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-xl font-semibold">Vorschläge</h1>
-        <p className="text-sm text-slate-500">Ideen zu Ihren Projekten – ansehen, vergleichen und entscheiden.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-semibold">Vorschläge</h1>
+          <p className="text-sm text-slate-500">Ideen zu Ihren Projekten – ansehen, vergleichen und entscheiden.</p>
+        </div>
+        {projects.length > 1 ? (
+          <select
+            value={project}
+            onChange={(e) => setProject(e.target.value)}
+            className="shrink-0 rounded border border-slate-300 bg-white px-3 py-2 text-sm"
+            aria-label="Projekt wechseln"
+          >
+            <option value="__all__">Alle Projekte</option>
+            {projects.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        ) : null}
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}

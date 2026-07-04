@@ -14,6 +14,7 @@ export type PortalTicket = {
   projectName: string | null;
   dueOn: string | null;
   createdAt: string;
+  updatedAt: string;
 };
 
 export type PortalComment = {
