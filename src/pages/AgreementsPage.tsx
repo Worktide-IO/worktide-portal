@@ -9,6 +9,17 @@ function formatDate(iso: string | null): string | null {
   return iso ? new Date(iso).toLocaleDateString('de-DE', { dateStyle: 'medium' }) : null;
 }
 
+// Relative expiry hint for an offer's validUntil, e.g. "läuft ab in 5 Tagen".
+// null when there's no date or it's far out (> 30 days).
+function expiryHint(iso: string | null): { text: string; urgent: boolean } | null {
+  if (!iso) return null;
+  const days = Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
+  if (days > 30) return null;
+  if (days < 0) return { text: 'abgelaufen', urgent: true };
+  if (days === 0) return { text: 'läuft heute ab', urgent: true };
+  return { text: `läuft ab in ${days} ${days === 1 ? 'Tag' : 'Tagen'}`, urgent: days <= 7 };
+}
+
 function formatPrice(cents: number, currency: string): string {
   try {
     return new Intl.NumberFormat('de-DE', { style: 'currency', currency: currency.toUpperCase() }).format(
@@ -22,6 +33,8 @@ function formatPrice(cents: number, currency: string): string {
 function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: PortalAgreement) => void }) {
   const valid = formatDate(a.validUntil);
   const signed = formatDate(a.signedOn);
+  // Only nudge on open offers (a signed contract's end date isn't a "hurry" signal).
+  const expiry = a.isSigned ? null : expiryHint(a.validUntil);
   const [signOpen, setSignOpen] = useState(false);
   const [fullName, setFullName] = useState('');
   const [busy, setBusy] = useState(false);
@@ -59,6 +72,9 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
         {a.signedBy ? <span>Signiert von {a.signedBy}</span> : signed ? <span>Signiert am {signed}</span> : null}
         {valid ? <span>Gültig bis {valid}</span> : null}
+        {expiry ? (
+          <span className={expiry.urgent ? 'font-medium text-amber-700' : 'text-slate-500'}>{expiry.text}</span>
+        ) : null}
         {a.hasDocument ? (
           <span className="inline-flex items-center gap-1 text-slate-600">
             <FileCheck2 className="size-3.5" /> Dokument hinterlegt
