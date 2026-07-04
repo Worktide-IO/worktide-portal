@@ -54,6 +54,7 @@ export function IdeasPage() {
   const [notes, setNotes] = useState<PortalBrainstormNote[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState('');
+  const [ideaDesc, setIdeaDesc] = useState('');
   const [busy, setBusy] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [noteBusy, setNoteBusy] = useState(false);
@@ -94,9 +95,10 @@ export function IdeasPage() {
     if (!title.trim()) return;
     setBusy(true);
     try {
-      const created = await portalApi.submitIdea(title.trim());
+      const created = await portalApi.submitIdea(title.trim(), ideaDesc.trim() || undefined);
       setIdeas((prev) => sortIdeas([created, ...(prev ?? [])]));
       setTitle('');
+      setIdeaDesc('');
     } finally {
       setBusy(false);
     }
@@ -128,20 +130,29 @@ export function IdeasPage() {
           <Lightbulb className="size-4 text-slate-400" /> Ideen fürs Business
         </h2>
 
-        <form onSubmit={submit} className="flex gap-2">
+        <form onSubmit={submit} className="space-y-2 rounded-lg border border-slate-200 bg-white p-3">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Neue Idee einreichen…"
-            className="flex-1 rounded border border-slate-300 px-3 py-2 text-sm"
+            className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
           />
-          <button
-            type="submit"
-            disabled={busy || !title.trim()}
-            className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
-          >
-            <Plus className="size-4" /> Einreichen
-          </button>
+          <textarea
+            value={ideaDesc}
+            onChange={(e) => setIdeaDesc(e.target.value)}
+            rows={2}
+            placeholder="Beschreibung (optional)…"
+            className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
+          />
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={busy || !title.trim()}
+              className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+            >
+              <Plus className="size-4" /> Einreichen
+            </button>
+          </div>
         </form>
 
         <ul className="space-y-2">
@@ -163,8 +174,14 @@ export function IdeasPage() {
               <div className="min-w-0 flex-1">
                 <div className="font-medium">{idea.title}</div>
                 {idea.description ? <p className="mt-0.5 text-sm text-slate-600">{idea.description}</p> : null}
-                <div className="mt-1 flex flex-wrap gap-2 text-xs text-slate-400">
-                  <span>{idea.originLabel}</span>
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-400">
+                  {idea.origin === 'ai' ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-1.5 py-0.5 text-violet-700">
+                      <Sparkles className="size-3" /> {idea.originLabel}
+                    </span>
+                  ) : (
+                    <span>{idea.originLabel}</span>
+                  )}
                   <span>·</span>
                   <span>{idea.statusLabel}</span>
                   {idea.submittedBy ? (

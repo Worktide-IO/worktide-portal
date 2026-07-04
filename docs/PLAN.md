@@ -332,3 +332,20 @@ KI eine dezente Meldung statt Fehler.
 **Dark bis konfiguriert:** die KI ist erst aktiv, wenn `ANTHROPIC_API_KEY` gesetzt und
 `EGRESS_ALLOW` das Modul `llm` enthält (EgressGuard). Ohne Konfiguration liefert der Endpoint 503 und
 das Frontend zeigt „KI-Vorschlag ist derzeit nicht verfügbar."
+
+---
+
+## Umgesetzt nach P1 — UX-Feinschliff (Frontend-only)
+
+> Ausgeliefert 2026-07-04. Kleine, rein clientseitige Politur — Daten waren bereits in den DTOs.
+
+- **Ziele & Ideen:** Idee-Einreichen-Formular hat jetzt zusätzlich ein optionales Beschreibungs-Feld
+  (`submitIdea` akzeptierte `description` bereits). AI-Ideen zeigen ein violettes „✨ KI-Vorschlag"-
+  Badge (wie im Brainstorming/Vorschläge), Agentur/Kunde bleiben schlicht.
+- **Angebote & Verträge:** relativer Ablauf-Hinweis „läuft ab in N Tagen" (bzw. „läuft heute ab" /
+  „abgelaufen") aus `validUntil`, nur bei **offenen** Angeboten (signierte Verträge werden nicht
+  angemahnt), bernstein ab ≤ 7 Tagen.
+
+**Bewusst NICHT im Frontend-only-Batch** (brauchen Backend-Daten, daher offen): Social-Bildvorschau +
+Inline-Textbearbeitung (keine Media-URLs / kein Update-Endpoint), Vorher/Nachher-Mockup bei Vorschlägen
+(keine Mockup-URL), @Mention / „Wartet auf mich"-Filter / Projekt-Picker bei Tickets.
