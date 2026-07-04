@@ -278,3 +278,24 @@ Beitrags-Stream (farbcodierter Herkunfts-Punkt customer/agency/ai, KI-Badge auf 
 
 **Offen:** KI-Moderation/-Zusammenfassung (Wireframe „🤖 KI moderiert") — das Board rendert
 AI-Beiträge, erzeugt sie aber noch nicht automatisch; separates KI-Thema.
+
+---
+
+## Umgesetzt nach P1 — Ticket-Anhänge (Screen 2, „📎")
+
+> Ausgeliefert 2026-07-04. In P1 zurückgestellt („Datei-Anhang beim Erstellen", §5). Jetzt können
+> Kunden Dateien an ein Ticket hängen und herunterladen — auf der vorhandenen File-Infrastruktur.
+
+**Backend (`worktide`):** net-new **`PortalAttachmentsController`** — portal-gescopte Endpoints
+(`POST /v1/portal/tickets/{id}/attachments`, `GET …/{fileId}/content`), autorisiert über
+`PortalAccessResolver::findTicketOr404` (Identitätskette + Hidden-Ticket-Gate). Ein Anhang ist ein
+`File` (target=Task, targetId=Ticket) + `FileVersion`, gespeichert über die bestehende `FileStorage`
+(Flysystem, lokal/MinIO), immer `isHiddenForConnectUsers=false`; Upload-Cap 10 MB. Der Download
+streamt nur Anhänge, die zum Ticket gehören und nicht versteckt sind (ETag/Content-Disposition).
+`PortalTicketsController::show` liefert zusätzlich `attachments[]`; neue Repo-Methoden
+`FileRepository::findVisibleForTask` / `findVisibleTaskAttachment`. Functional-Test (Upload → Liste →
+Download → Fremd-Ticket 404). Suite 183 grün. **Kein** Virenscan (wie im Rest des Systems).
+
+**Frontend (`worktide-portal`):** `NewTicketPage` mit Datei-Auswahl (Upload nach Ticket-Erstellung),
+`TicketDetailPage` mit „Anhänge"-Liste (Download via authentifiziertem Blob-Fetch) + „Datei anhängen".
+Trigger als expliziter Button→`ref.click()` (robust) mit Fehlermeldung bei fehlgeschlagenem Upload.

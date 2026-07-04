@@ -31,9 +31,18 @@ export type PortalComment = {
   createdAt: string;
 };
 
+export type PortalAttachment = {
+  id: string;
+  name: string;
+  mimeType: string | null;
+  size: number | null;
+  uploadedAt: string | null;
+};
+
 export type PortalTicketDetail = PortalTicket & {
   description: string | null;
   comments: PortalComment[];
+  attachments: PortalAttachment[];
 };
 
 /** Per-workspace feature flags that drive the portal navigation. */
@@ -305,16 +314,39 @@ export const portalApi = {
   // so pages can read description + comments off one value.
   ticket: (id: string) =>
     api
-      .get<{ ticket: PortalTicket & { description: string | null }; comments: PortalComment[] }>(
-        `/portal/tickets/${id}`,
-      )
-      .then((r): PortalTicketDetail => ({ ...r.data.ticket, comments: r.data.comments })),
+      .get<{
+        ticket: PortalTicket & { description: string | null };
+        comments: PortalComment[];
+        attachments: PortalAttachment[];
+      }>(`/portal/tickets/${id}`)
+      .then(
+        (r): PortalTicketDetail => ({
+          ...r.data.ticket,
+          comments: r.data.comments,
+          attachments: r.data.attachments,
+        }),
+      ),
 
   createTicket: (input: NewTicketInput) =>
     api.post<PortalTicket>('/portal/tickets', input).then((r) => r.data),
 
   addComment: (id: string, content: string) =>
     api.post<PortalComment>(`/portal/tickets/${id}/comments`, { content }).then((r) => r.data),
+
+  uploadAttachment: (ticketId: string, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    return api
+      .post<PortalAttachment>(`/portal/tickets/${ticketId}/attachments`, form)
+      .then((r) => r.data);
+  },
+
+  // Downloads through axios so the Bearer token is sent, then hands back a Blob
+  // the caller can turn into an object URL.
+  downloadAttachment: (ticketId: string, fileId: string) =>
+    api
+      .get<Blob>(`/portal/tickets/${ticketId}/attachments/${fileId}/content`, { responseType: 'blob' })
+      .then((r) => r.data),
 
   systems: (days?: number) =>
     api
