@@ -4,25 +4,35 @@ import { ArrowLeft } from 'lucide-react';
 
 import { portalApi } from '@/lib/portal';
 
+const PRIORITIES: { value: string; label: string }[] = [
+  { value: 'low', label: 'Niedrig' },
+  { value: 'normal', label: 'Mittel' },
+  { value: 'high', label: 'Hoch' },
+  { value: 'urgent', label: 'Dringend' },
+];
+
 export function NewTicketPage() {
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
+  const [priority, setPriority] = useState('normal');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  // TODO(phase-1): if the contact's customer has more than one external
-  // project, let them pick one (portalApi.me() could expose the allowed set)
-  // and pass projectId. With a single project the backend picks it.
+  // With a single external project the backend picks it automatically; if the
+  // customer has several it returns 400 asking for projectId — surfaced below.
+  // (Project picker is a later enhancement once /portal/me exposes the set.)
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      const created = await portalApi.createTicket({ title, description });
+      const created = await portalApi.createTicket({ title, description, priority });
       navigate(`/tickets/${created.id}`);
-    } catch {
-      setError('Ticket konnte nicht angelegt werden.');
+    } catch (err) {
+      const detail =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      setError(detail ?? 'Ticket konnte nicht angelegt werden.');
       setBusy(false);
     }
   }
@@ -51,6 +61,20 @@ export function NewTicketPage() {
             rows={5}
             className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
           />
+        </label>
+        <label className="block text-sm">
+          Priorität
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2"
+          >
+            {PRIORITIES.map((p) => (
+              <option key={p.value} value={p.value}>
+                {p.label}
+              </option>
+            ))}
+          </select>
         </label>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         <button
