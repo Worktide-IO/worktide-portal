@@ -141,6 +141,33 @@ export type PortalDocumentDetail = PortalDocument & {
   bodyFormat: string; // markdown
 };
 
+// SEO-Fragebogen / questionnaires (screen 8). One-shot fill+submit over the
+// PublicForm model; draft-save/multi-session is a modelling follow-up.
+export type PortalFormField = {
+  key: string;
+  label: string;
+  type: string; // text | textarea | email | url | number | date | select | radio | checkbox
+  required: boolean;
+  options: string[];
+  placeholder: string | null;
+  section: string | null;
+};
+
+export type PortalFormSummary = {
+  id: string;
+  title: string;
+  description: string | null;
+  fieldCount: number;
+};
+
+export type PortalFormDetail = {
+  id: string;
+  title: string;
+  description: string | null;
+  successMessage: string | null;
+  fields: PortalFormField[];
+};
+
 export type NewTicketInput = {
   title: string;
   description?: string;
@@ -194,4 +221,11 @@ export const portalApi = {
 
   document: (id: string) =>
     api.get<PortalDocumentDetail>(`/portal/documents/${id}`).then((r) => r.data),
+
+  forms: () => api.get<{ forms: PortalFormSummary[] }>('/portal/forms').then((r) => r.data.forms),
+
+  form: (id: string) => api.get<PortalFormDetail>(`/portal/forms/${id}`).then((r) => r.data),
+
+  submitForm: (id: string, values: Record<string, unknown>) =>
+    api.post<{ success: boolean; message: string | null }>(`/portal/forms/${id}/submit`, values).then((r) => r.data),
 };

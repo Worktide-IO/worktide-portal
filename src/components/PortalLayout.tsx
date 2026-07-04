@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import {
   Boxes,
+  ClipboardList,
   FileText,
   FolderKanban,
   Gauge,
@@ -32,6 +33,7 @@ const NAV: NavItem[] = [
   { key: 'agreements', label: 'Angebote & Verträge', icon: FileText, to: '/agreements' },
   { key: 'ideas', label: 'Ziele & Ideen', icon: Lightbulb, to: '/ideas' },
   { key: 'documents', label: 'Wissen / Dateien', icon: FolderKanban, to: '/documents' },
+  { key: 'forms', label: 'Fragebögen', icon: ClipboardList, to: '/forms' },
 ];
 
 export function PortalLayout({ children }: { children: ReactNode }) {
