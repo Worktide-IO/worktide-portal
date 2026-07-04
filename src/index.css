@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 /* Portal is deliberately plain — a calm, reduced, customer-facing surface.
    Brand tokens can be lifted from ../worktide-web later (copy, don't import). */

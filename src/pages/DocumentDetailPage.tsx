@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { ArrowLeft } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 import { portalApi, type PortalDocumentDetail } from '@/lib/portal';
 
@@ -33,11 +35,15 @@ export function DocumentDetailPage() {
         <p className="mt-1 text-xs text-slate-500">
           {[doc.spaceName, doc.projectName].filter(Boolean).join(' · ')}
         </p>
-        {/* Body is markdown; rendered as preserved text for now (rich markdown
-            rendering is a later polish — no renderer dependency yet). */}
-        <div className="mt-4 whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-800">
-          {doc.body ?? '—'}
-        </div>
+        {/* Body is markdown (GFM). react-markdown renders to plain elements;
+            Tailwind Typography's `prose` styles them. */}
+        {doc.body ? (
+          <div className="prose prose-slate prose-sm mt-4 max-w-none">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.body}</ReactMarkdown>
+          </div>
+        ) : (
+          <p className="mt-4 text-sm text-slate-400">Kein Inhalt.</p>
+        )}
       </div>
     </div>
   );
