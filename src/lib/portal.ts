@@ -38,6 +38,22 @@ export type PortalMe = {
   features: PortalFeatures;
 };
 
+// Monitoring screen: the customer's systems inventory + managed status.
+// NOTE: no uptime/latency/incidents — that data isn't in the backend model
+// yet (see docs/RECONCILIATION.md). We show what's real.
+export type PortalSystem = {
+  id: string;
+  name: string;
+  type: string; // typo3 | wordpress | shopware | …
+  systemVersion: string | null;
+  environment: string;
+  environmentLabel: string;
+  url: string | null;
+  hostingProvider: string | null;
+  isActive: boolean;
+  statusLabel: string;
+};
+
 export type NewTicketInput = {
   title: string;
   description?: string;
@@ -65,4 +81,7 @@ export const portalApi = {
 
   addComment: (id: string, content: string) =>
     api.post<PortalComment>(`/portal/tickets/${id}/comments`, { content }).then((r) => r.data),
+
+  systems: () =>
+    api.get<{ systems: PortalSystem[] }>('/portal/systems').then((r) => r.data.systems),
 };

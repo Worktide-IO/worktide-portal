@@ -28,7 +28,7 @@ type NavItem = { key: string; label: string; icon: typeof Ticket; to?: string };
 const NAV: NavItem[] = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { key: 'tickets', label: 'Tickets', icon: Ticket, to: '/tickets' },
-  { key: 'monitoring', label: 'Monitoring', icon: Gauge },
+  { key: 'monitoring', label: 'Monitoring', icon: Gauge, to: '/monitoring' },
   { key: 'agreements', label: 'Angebote & Verträge', icon: FileText },
   { key: 'ideas', label: 'Ziele & Ideen', icon: Lightbulb },
   { key: 'documents', label: 'Wissen / Dateien', icon: FolderKanban },
