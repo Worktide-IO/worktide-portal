@@ -180,6 +180,8 @@ export type PortalFormDetail = {
   description: string | null;
   successMessage: string | null;
   fields: PortalFormField[];
+  draft: Record<string, unknown> | null;
+  draftSavedAt: string | null;
 };
 
 // Ideen-Pitch (screen 7): project proposals the customer reviews.
@@ -288,6 +290,9 @@ export const portalApi = {
 
   submitForm: (id: string, values: Record<string, unknown>) =>
     api.post<{ success: boolean; message: string | null }>(`/portal/forms/${id}/submit`, values).then((r) => r.data),
+
+  saveFormDraft: (id: string, values: Record<string, unknown>) =>
+    api.put<{ savedAt: string }>(`/portal/forms/${id}/draft`, values).then((r) => r.data),
 
   proposals: () => api.get<{ proposals: PortalProposal[] }>('/portal/proposals').then((r) => r.data.proposals),
 
