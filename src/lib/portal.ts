@@ -189,6 +189,17 @@ export type PortalIdea = {
   createdAt: string;
 };
 
+// Brainstorming board (screen 5): a shared free-form note stream.
+export type PortalBrainstormNote = {
+  id: string;
+  body: string;
+  authorName: string;
+  origin: string; // customer | agency | ai
+  originLabel: string; // Sie | Agentur | KI
+  isMine: boolean;
+  createdAt: string;
+};
+
 // Wissen / Dateien — published knowledge documents (read-only).
 export type PortalDocument = {
   id: string;
@@ -334,6 +345,12 @@ export const portalApi = {
 
   unvoteIdea: (id: string) =>
     api.delete<{ voteCount: number; hasVoted: boolean }>(`/portal/ideas/${id}/vote`).then((r) => r.data),
+
+  brainstorm: () =>
+    api.get<{ notes: PortalBrainstormNote[] }>('/portal/brainstorm').then((r) => r.data.notes),
+
+  postBrainstorm: (body: string) =>
+    api.post<PortalBrainstormNote>('/portal/brainstorm', { body }).then((r) => r.data),
 
   documents: () =>
     api.get<{ documents: PortalDocument[] }>('/portal/documents').then((r) => r.data.documents),

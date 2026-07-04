@@ -1,7 +1,22 @@
 import { useEffect, useState } from 'react';
-import { ChevronUp, Lightbulb, Plus, Target } from 'lucide-react';
+import { ChevronUp, Lightbulb, MessagesSquare, Plus, Send, Sparkles, Target } from 'lucide-react';
 
-import { portalApi, type PortalGoal, type PortalIdea } from '@/lib/portal';
+import {
+  portalApi,
+  type PortalBrainstormNote,
+  type PortalGoal,
+  type PortalIdea,
+} from '@/lib/portal';
+
+function formatWhen(iso: string): string {
+  return new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+const ORIGIN_DOT: Record<string, string> = {
+  customer: 'bg-slate-800',
+  agency: 'bg-sky-500',
+  ai: 'bg-violet-500',
+};
 
 const GOAL_STATUS_CLASSES: Record<string, string> = {
   reached: 'bg-green-100 text-green-700',
@@ -36,14 +51,31 @@ function GoalCard({ g }: { g: PortalGoal }) {
 export function IdeasPage() {
   const [goals, setGoals] = useState<PortalGoal[] | null>(null);
   const [ideas, setIdeas] = useState<PortalIdea[] | null>(null);
+  const [notes, setNotes] = useState<PortalBrainstormNote[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [busy, setBusy] = useState(false);
+  const [noteText, setNoteText] = useState('');
+  const [noteBusy, setNoteBusy] = useState(false);
 
   useEffect(() => {
     portalApi.goals().then(setGoals).catch(() => setError('Ziele konnten nicht geladen werden.'));
     portalApi.ideas().then(setIdeas).catch(() => setError('Ideen konnten nicht geladen werden.'));
+    portalApi.brainstorm().then(setNotes).catch(() => setError('Brainstorming konnte nicht geladen werden.'));
   }, []);
+
+  async function postNote(e: React.FormEvent) {
+    e.preventDefault();
+    if (!noteText.trim()) return;
+    setNoteBusy(true);
+    try {
+      const created = await portalApi.postBrainstorm(noteText.trim());
+      setNotes((prev) => [...(prev ?? []), created]);
+      setNoteText('');
+    } finally {
+      setNoteBusy(false);
+    }
+  }
 
   async function toggleVote(idea: PortalIdea) {
     // Optimistic: flip locally, reconcile with the server response.
@@ -146,6 +178,56 @@ export function IdeasPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+          <MessagesSquare className="size-4 text-slate-400" /> Brainstorming
+        </h2>
+
+        <div className="rounded-lg border border-slate-200 bg-white p-4">
+          {notes && notes.length === 0 ? (
+            <p className="text-sm text-slate-500">Noch keine Beiträge — starten Sie die Unterhaltung.</p>
+          ) : null}
+
+          <ul className="space-y-4">
+            {(notes ?? []).map((n) => (
+              <li key={n.id} className="flex gap-3">
+                <span className={`mt-1.5 size-2 shrink-0 rounded-full ${ORIGIN_DOT[n.origin] ?? 'bg-slate-400'}`} />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    <span className={`font-medium ${n.isMine ? 'text-slate-900' : 'text-slate-600'}`}>
+                      {n.authorName}
+                    </span>
+                    {n.origin === 'ai' ? (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-1.5 py-0.5 text-violet-700">
+                        <Sparkles className="size-3" /> KI
+                      </span>
+                    ) : null}
+                    <span className="text-slate-400">{formatWhen(n.createdAt)}</span>
+                  </div>
+                  <p className="mt-0.5 whitespace-pre-wrap text-sm text-slate-700">{n.body}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <form onSubmit={postNote} className="mt-4 flex gap-2 border-t border-slate-100 pt-3">
+            <input
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              placeholder="Beitrag schreiben…"
+              className="flex-1 rounded border border-slate-300 px-3 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={noteBusy || !noteText.trim()}
+              className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+            >
+              <Send className="size-4" /> Senden
+            </button>
+          </form>
+        </div>
       </section>
     </div>
   );
