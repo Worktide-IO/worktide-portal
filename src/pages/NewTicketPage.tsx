@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import { ArrowLeft, Paperclip, X } from 'lucide-react';
+import { ArrowLeft, Paperclip, Sparkles, X } from 'lucide-react';
 
 import { portalApi } from '@/lib/portal';
 
@@ -25,10 +25,30 @@ export function NewTicketPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [suggesting, setSuggesting] = useState(false);
+  const [suggestNote, setSuggestNote] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function addFiles(list: FileList | null) {
     if (list) setFiles((prev) => [...prev, ...Array.from(list)]);
+  }
+
+  async function suggest() {
+    if (!description.trim()) return;
+    setSuggesting(true);
+    setSuggestNote(null);
+    try {
+      const s = await portalApi.suggestTicket(description.trim());
+      setTitle(s.title);
+      setPriority(s.priority);
+      setSuggestNote(
+        s.projectName ? `Vorschlag übernommen · Projekt: ${s.projectName}` : 'Vorschlag übernommen.',
+      );
+    } catch {
+      setSuggestNote('KI-Vorschlag ist derzeit nicht verfügbar.');
+    } finally {
+      setSuggesting(false);
+    }
   }
 
   // With a single external project the backend picks it automatically; if the
@@ -69,15 +89,27 @@ export function NewTicketPage() {
             className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
           />
         </label>
-        <label className="block text-sm">
-          Beschreibung
+        <div className="text-sm">
+          <div className="flex items-center justify-between gap-2">
+            <span>Beschreibung</span>
+            <button
+              type="button"
+              onClick={suggest}
+              disabled={suggesting || !description.trim()}
+              className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100 disabled:opacity-50"
+              title="Titel & Priorität aus der Beschreibung vorschlagen"
+            >
+              <Sparkles className="size-3.5" /> {suggesting ? 'Analysiert…' : 'Vorschlag von KI'}
+            </button>
+          </div>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={5}
             className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
           />
-        </label>
+          {suggestNote ? <p className="mt-1 text-xs text-violet-700">{suggestNote}</p> : null}
+        </div>
         <label className="block text-sm">
           Priorität
           <select

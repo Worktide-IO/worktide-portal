@@ -304,6 +304,15 @@ export type NewTicketInput = {
   projectId?: string;
 };
 
+// AI-structured suggestion from a free-text description (screen 2, "KI").
+export type PortalTicketSuggestion = {
+  title: string;
+  priority: string;
+  priorityLabel: string;
+  projectId: string | null;
+  projectName: string | null;
+};
+
 export const portalApi = {
   me: () => api.get<PortalMe>('/portal/me').then((r) => r.data),
 
@@ -329,6 +338,11 @@ export const portalApi = {
 
   createTicket: (input: NewTicketInput) =>
     api.post<PortalTicket>('/portal/tickets', input).then((r) => r.data),
+
+  suggestTicket: (description: string) =>
+    api
+      .post<PortalTicketSuggestion>('/portal/tickets/suggest', { description })
+      .then((r) => r.data),
 
   addComment: (id: string, content: string) =>
     api.post<PortalComment>(`/portal/tickets/${id}/comments`, { content }).then((r) => r.data),
