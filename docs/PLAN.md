@@ -299,3 +299,26 @@ Download → Fremd-Ticket 404). Suite 183 grün. **Kein** Virenscan (wie im Rest
 **Frontend (`worktide-portal`):** `NewTicketPage` mit Datei-Auswahl (Upload nach Ticket-Erstellung),
 `TicketDetailPage` mit „Anhänge"-Liste (Download via authentifiziertem Blob-Fetch) + „Datei anhängen".
 Trigger als expliziter Button→`ref.click()` (robust) mit Fehlermeldung bei fehlgeschlagenem Upload.
+
+---
+
+## Umgesetzt nach P1 — KI-Ticket-Vorschlag (Screen 2, „KI")
+
+> Ausgeliefert 2026-07-04. In P1 zurückgestellt („KI-Strukturierung", §5). Human-in-the-loop:
+> die KI **schlägt vor**, der Kunde prüft das vorbefüllte Formular und reicht selbst ein.
+
+**Backend (`worktide`):** net-new **`PortalTicketSuggester`** (nutzt `LlmProviderInterface` →
+`AnthropicLlmProvider`, `completeJson`). Aus der Freitext-Beschreibung → `{title, priority, projectId}`;
+**jedes Feld validiert** (erfundene Priorität → Normal, unbekannte projectId → null, Titel getrimmt/
+gekappt bzw. Fallback auf die erste Zeile). Endpoint `POST /v1/portal/tickets/suggest` (Feature
+`tickets`): 503 wenn LLM nicht konfiguriert, 503 bei `LlmException`, sonst `{title, priority,
+priorityLabel, projectId, projectName}`. Unit-Test mit Stub-Provider (Happy-Path + Validierung,
+5 Fälle). Suite 188 grün.
+
+**Frontend (`worktide-portal`, `NewTicketPage`):** Button „✨ Vorschlag von KI" neben der
+Beschreibung; übernimmt Titel + Priorität (+ Projekt-Hinweis) ins Formular. Bei nicht-verfügbarer
+KI eine dezente Meldung statt Fehler.
+
+**Dark bis konfiguriert:** die KI ist erst aktiv, wenn `ANTHROPIC_API_KEY` gesetzt und
+`EGRESS_ALLOW` das Modul `llm` enthält (EgressGuard). Ohne Konfiguration liefert der Endpoint 503 und
+das Frontend zeigt „KI-Vorschlag ist derzeit nicht verfügbar."
