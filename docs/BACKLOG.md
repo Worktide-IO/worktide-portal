@@ -34,7 +34,10 @@
 ## Kleinere (brauchen Backend-Daten, daher nicht frontend-only)
 - [ ] **Social:** Bildvorschau + Inline-Textbearbeitung vor Freigabe — keine Media-URLs / kein
       Update-Body-Endpoint (heute nur `mediaCount`).
-- [ ] **Vorschläge:** Vorher/Nachher-Mockup — keine Mockup-URL im `ProjectProposal`.
+- [x] **Vorschläge:** Vorher/Nachher-Mockup — ✓ erledigt 2026-07-05: `ProjectProposal.mockupBeforeUrl`
+      + `mockupAfterUrl` (Agentur-gehostete Bild-URLs, `Assert\Url`), im Portal als Vorher/Nachher-
+      Vergleich gerendert (kaputte URLs blenden sich still aus). Staff setzt sie über die bestehende
+      `ProjectProposal`-API (Patch). Siehe PLAN.md.
 - [ ] **Tickets:** @Mention im Antwort-Composer. — **Projekt-Picker bei neuem Ticket ✓ erledigt
       2026-07-05** (`/portal/me` liefert jetzt `projects`; `NewTicketPage` zeigt ein Projekt-`<select>`,
       sobald der Kunde >1 externes Projekt hat; Backend validierte `projectId` bereits). —

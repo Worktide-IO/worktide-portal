@@ -312,6 +312,8 @@ export type PortalProposal = {
   origin: string; // ai | agency
   originLabel: string;
   variants: PortalProposalVariant[];
+  mockupBeforeUrl: string | null;
+  mockupAfterUrl: string | null;
   customerFeedback: string | null;
   ticketIdentifier: string | null;
   offerReference: string | null;
