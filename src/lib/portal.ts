@@ -4,10 +4,17 @@ import { api } from '@/lib/api';
 // docs/PLAN.md + docs/RECONCILIATION.md). Deliberately NARROW — no internal
 // fields (assignees, tracker, priority score, …).
 
-export type PortalTicketSla = {
-  status: string; // due | overdue | met | missed | none
-  label: string; // "in 4 Std." | "überschritten" | "erfüllt" | "—"
+// One SLA target (response or resolution).
+export type PortalSlaLeg = {
+  status: string; // due | overdue | met | missed | paused | none
+  label: string; // "in 4 Std." | "überschritten" | "erfüllt" | "pausiert" | "—"
   dueAt: string | null;
+};
+
+export type PortalTicketSla = {
+  paused: boolean; // ticket is waiting on the customer → clock paused
+  response: PortalSlaLeg; // time to first agency reply
+  resolution: PortalSlaLeg; // time to done
 };
 
 export type PortalTicket = {

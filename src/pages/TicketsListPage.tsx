@@ -7,22 +7,24 @@ import { PriorityBadge } from '@/components/PriorityBadge';
 
 const ALL = '__all__';
 
-// SLA cell — colored by status. Hidden entirely when there's no SLA.
+// SLA cell — shows the resolution target, colored by status. Hidden when none.
 const SLA_STYLES: Record<string, string> = {
   due: 'text-slate-500',
   overdue: 'text-red-600 font-medium',
   met: 'text-green-600',
   missed: 'text-red-600 font-medium',
+  paused: 'text-amber-600',
 };
 
 export function SlaBadge({ sla }: { sla: PortalTicketSla }) {
-  if (sla.status === 'none') return null;
+  const leg = sla.resolution;
+  if (leg.status === 'none') return null;
   return (
     <span
-      className={`hidden w-24 text-right text-xs tabular-nums sm:inline ${SLA_STYLES[sla.status] ?? 'text-slate-500'}`}
-      title="SLA"
+      className={`hidden w-24 text-right text-xs tabular-nums sm:inline ${SLA_STYLES[leg.status] ?? 'text-slate-500'}`}
+      title="SLA-Lösungszeit"
     >
-      {sla.label}
+      {leg.label}
     </span>
   );
 }
