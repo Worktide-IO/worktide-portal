@@ -48,6 +48,18 @@ export type PortalTicketDetail = PortalTicket & {
 /** Per-workspace feature flags that drive the portal navigation. */
 export type PortalFeatures = Record<string, boolean>;
 
+// Notifications (header bell). Derived server-side from real signals; read
+// state is a single "seen at" marker cleared by markNotificationsRead().
+export type PortalNotification = {
+  id: string;
+  type: string; // ticket_reply | proposal | social | agreement | incident
+  title: string;
+  body: string | null;
+  link: string;
+  occurredAt: string;
+  read: boolean;
+};
+
 export type PortalMe = {
   contact: { id: string; firstName: string; lastName: string; email: string | null };
   customer: { id: string; name: string };
@@ -315,6 +327,14 @@ export type PortalTicketSuggestion = {
 
 export const portalApi = {
   me: () => api.get<PortalMe>('/portal/me').then((r) => r.data),
+
+  notifications: () =>
+    api
+      .get<{ items: PortalNotification[]; unreadCount: number }>('/portal/notifications')
+      .then((r) => r.data),
+
+  markNotificationsRead: () =>
+    api.post<{ unreadCount: number }>('/portal/notifications/mark-read').then((r) => r.data),
 
   tickets: () =>
     api.get<{ tickets: PortalTicket[] }>('/portal/tickets').then((r) => r.data.tickets),

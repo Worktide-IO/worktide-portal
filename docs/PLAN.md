@@ -349,3 +349,23 @@ das Frontend zeigt „KI-Vorschlag ist derzeit nicht verfügbar."
 **Bewusst NICHT im Frontend-only-Batch** (brauchen Backend-Daten, daher offen): Social-Bildvorschau +
 Inline-Textbearbeitung (keine Media-URLs / kein Update-Endpoint), Vorher/Nachher-Mockup bei Vorschlägen
 (keine Mockup-URL), @Mention / „Wartet auf mich"-Filter / Projekt-Picker bei Tickets.
+
+---
+
+## Umgesetzt nach P1 — Benachrichtigungen (🔔 Header-Glocke)
+
+> Ausgeliefert 2026-07-05. Backlog-Punkt „Benachrichtigungen" erledigt.
+
+**Backend (`worktide`):** net-new **`PortalNotificationService`** — ein **abgeleiteter** Feed (kein
+Event-Write-Hook; je Aufruf neu aus echten Signalen berechnet, wie der Dashboard-Aktivitäts-Feed):
+Agentur-Antworten auf sichtbare Tickets (`CommentRepository::findRecentForTaskIds`, ohne die eigenen
+Kommentare des Kunden), Vorschläge (New), Social-Beiträge (PendingApproval), signierbare Angebote,
+offene Störungen — jede Quelle hinter ihrem Feature-Flag. Einziger persistenter State:
+`Contact.portalNotificationsSeenAt` (Migration `Version20260705123821`) für ungelesen/gelesen.
+Endpoints: `GET /v1/portal/notifications` → `{items, unreadCount}`; `POST …/notifications/mark-read`
+(setzt seenAt=jetzt). Immer verfügbar (kein eigenes Feature-Flag), aggregiert nur aus aktiven
+Features. Functional-Test (Agentur-Antwort → ungelesenes `ticket_reply`, mark-read → 0). Suite 204 grün.
+
+**Frontend (`worktide-portal`):** `NotificationBell` im `PortalLayout`-Header — Glocke mit rotem
+Unread-Badge, Dropdown-Panel (Typ-Icon je Art, Kurztext, Relativzeit, Link je Eintrag → Zielseite);
+Öffnen markiert alles als gelesen (Badge verschwindet). Fetch beim Mount.

@@ -16,6 +16,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 
 import { logout } from '@/providers/authProvider';
 import { portalApi, type PortalMe } from '@/lib/portal';
+import { NotificationBell } from '@/components/NotificationBell';
 
 /**
  * Portal chrome: a slim header + the full wireframe navigation, with only the
@@ -63,7 +64,7 @@ export function PortalLayout({ children }: { children: ReactNode }) {
             <Boxes className="size-5 text-slate-900" />
             Kundenportal
           </Link>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {me?.customer ? (
               <span className="hidden text-sm text-slate-500 sm:inline">
                 {me.customer.name}
@@ -71,6 +72,7 @@ export function PortalLayout({ children }: { children: ReactNode }) {
                 {me.contact?.firstName} {me.contact?.lastName}
               </span>
             ) : null}
+            <NotificationBell />
             <button
               type="button"
               onClick={() => {
