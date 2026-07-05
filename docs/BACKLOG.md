@@ -12,7 +12,7 @@
 - [ ] **Per-Customer strukturiertes SLA** — Reaktions- **und** Lösungszeiten pro Agreement, Pausieren
       bei „wartet auf Kunde". Heute nur abgeleitete Default-Policy pro Priorität
       (`PortalSlaCalculator` + `settings.portal.sla`, Staff-Editor unter Einstellungen → Kundenportal).
-- [ ] **Benachrichtigungen 🔔** — Dashboard-Glocke + Portal-Feed. Kein Notifications-Endpoint/Modell.
+- [x] **Benachrichtigungen 🔔** — ✓ erledigt 2026-07-05 (Header-Glocke + Feed; derived, siehe PLAN.md).
 - [ ] **Per-Contact Capability×Role-Sichtbarkeit** — Budget/Rechnungen etc. pro Kontakt schaltbar.
       Heute nur per-Workspace Feature-Flags (`settings.portal.features`).
 - [ ] **„Rückfrage stellen" auf einem Angebot** (Agreement-Verhandlung) + **KI-Klauselerklärung**.
