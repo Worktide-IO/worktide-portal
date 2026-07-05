@@ -7,8 +7,9 @@
 > geordnet nach Aufwand/Abhängigkeit.
 
 ## Braucht neues Modell / Backend
-- [ ] **Rechnungen-Tab** (Angebote & Verträge) — es gibt **kein** Invoice-Entity. Modell + Endpoint +
-      Tab nötig.
+- [x] **Rechnungen-Tab** (Angebote & Verträge) — ✓ erledigt 2026-07-05: net-new `Invoice`, aus
+      lexoffice gespiegelt (`app:lexoffice:sync-invoices`), Portal-Sektion. Siehe PLAN.md.
+      Offen/verschoben: PDF-Download (2. lexoffice-Hop `/invoices/{id}`→`/files/{id}`).
 - [ ] **Per-Customer strukturiertes SLA** — Reaktions- **und** Lösungszeiten pro Agreement, Pausieren
       bei „wartet auf Kunde". Heute nur abgeleitete Default-Policy pro Priorität
       (`PortalSlaCalculator` + `settings.portal.sla`, Staff-Editor unter Einstellungen → Kundenportal).

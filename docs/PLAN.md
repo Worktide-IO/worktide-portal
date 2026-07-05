@@ -369,3 +369,28 @@ Features. Functional-Test (Agentur-Antwort → ungelesenes `ticket_reply`, mark-
 **Frontend (`worktide-portal`):** `NotificationBell` im `PortalLayout`-Header — Glocke mit rotem
 Unread-Badge, Dropdown-Panel (Typ-Icon je Art, Kurztext, Relativzeit, Link je Eintrag → Zielseite);
 Öffnen markiert alles als gelesen (Badge verschwindet). Fetch beim Mount.
+
+---
+
+## Umgesetzt nach P1 — Rechnungen (Screen 4, „Rechnungen"-Tab)
+
+> Ausgeliefert 2026-07-05. Backlog-Punkt „Rechnungen-Tab". Quelle: lexoffice (Worktide ist NICHT
+> System of Record) — gespiegelt, read-only. PDF-Download bewusst verschoben.
+
+**Backend (`worktide`):** net-new **`Invoice`** (kunden-gescoped, `lexofficeId` als Upsert-Key,
+`number`/`issuedOn`/`dueOn`/`totalCents`/`openCents`/`currency`/`status` via `InvoiceStatus`
+open/paid/voided; „Überfällig" wird abgeleitet = Open + `dueOn` < heute, nicht gespeichert). Migration
+`Version20260705125304`. **`app:lexoffice:sync-invoices`** spiegelt die lexoffice-Rechnungen: gleiche
+`Channel`-API-Key- + `EntitySync` contactId→Customer-Logik + gedrosselter `/voucherlist`-Fetch wie
+`app:lexoffice:sync-revenue`, aber **Upsert von Invoice-Zeilen** je Voucher (statt Summe). Endpoint
+`GET /v1/portal/invoices` hinter neuem Feature-Flag **`invoices`** (FEATURE_KEYS jetzt 10), DTO
+{number, issuedOn, dueOn, totalCents, openCents, currency, status, statusLabel}. Functional-Tests
+(Liste + abgeleitetes overdue; Feature-off → 403). Suite 206 grün.
+
+**Frontend (`worktide-portal`, `AgreementsPage`):** „Rechnungen (N)"-Sektion — Liste mit
+Nummer/Datum/Fälligkeit, farbcodiertem Status-Badge (Offen/Überfällig/Bezahlt/Storniert) und Betrag
+(storniert durchgestrichen). Eigener, feature-gegateter Fetch (403 → Sektion ausgeblendet).
+
+**Dark bis konfiguriert:** der reale Sync braucht einen lexoffice-`Channel` mit API-Key; lokal per
+Seed befüllt (4 Demo-Rechnungen bei Acme, `invoices`-Flag an). **Verschoben:** PDF-Download
+(lexoffice `/invoices/{id}` → `files.documentFileId` → `/files/{id}`).

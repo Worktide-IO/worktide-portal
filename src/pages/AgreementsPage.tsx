@@ -1,7 +1,20 @@
 import { useEffect, useState } from 'react';
-import { FileCheck2, FileText, PenLine, Repeat } from 'lucide-react';
+import { FileCheck2, FileText, PenLine, Receipt, Repeat } from 'lucide-react';
 
-import { portalApi, type PortalAgreement, type PortalAgreements, type PortalSubscription } from '@/lib/portal';
+import {
+  portalApi,
+  type PortalAgreement,
+  type PortalAgreements,
+  type PortalInvoice,
+  type PortalSubscription,
+} from '@/lib/portal';
+
+const INVOICE_STATUS_CLASSES: Record<string, string> = {
+  paid: 'bg-green-100 text-green-700',
+  open: 'bg-amber-100 text-amber-800',
+  overdue: 'bg-red-100 text-red-700',
+  voided: 'bg-slate-100 text-slate-500',
+};
 
 const OFFER_STATUSES = new Set(['draft', 'in_negotiation']);
 
@@ -188,6 +201,8 @@ function Section({ icon: Icon, title, children }: { icon: typeof FileText; title
 
 export function AgreementsPage() {
   const [data, setData] = useState<PortalAgreements | null>(null);
+  // null = invoices feature off / not loaded (section hidden); array = shown.
+  const [invoices, setInvoices] = useState<PortalInvoice[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -195,6 +210,11 @@ export function AgreementsPage() {
       .agreements()
       .then(setData)
       .catch(() => setError('Angebote & Verträge konnten nicht geladen werden.'));
+    // Invoices are a separate, feature-gated endpoint — a 403 just hides the section.
+    portalApi
+      .invoices()
+      .then(setInvoices)
+      .catch(() => setInvoices(null));
   }, []);
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
@@ -261,9 +281,35 @@ export function AgreementsPage() {
         </Section>
       ) : null}
 
-      <p className="pt-1 text-xs text-slate-400">
-        Rechnungen folgen in einem späteren Schritt.
-      </p>
+      {invoices !== null ? (
+        <Section icon={Receipt} title={`Rechnungen${invoices.length ? ` (${invoices.length})` : ''}`}>
+          {invoices.length === 0 ? (
+            <p className="text-sm text-slate-500">Keine Rechnungen.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
+              {invoices.map((inv) => (
+                <li key={inv.id} className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div className="min-w-0">
+                    <div className="font-mono text-xs text-slate-400">{inv.number}</div>
+                    <div className="text-xs text-slate-500">
+                      {formatDate(inv.issuedOn)}
+                      {inv.dueOn ? ` · fällig ${formatDate(inv.dueOn)}` : ''}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${INVOICE_STATUS_CLASSES[inv.status] ?? INVOICE_STATUS_CLASSES.open}`}>
+                      {inv.statusLabel}
+                    </span>
+                    <span className={`tabular-nums text-sm font-medium ${inv.status === 'voided' ? 'text-slate-400 line-through' : ''}`}>
+                      {formatPrice(inv.totalCents, inv.currency)}
+                    </span>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Section>
+      ) : null}
     </div>
   );
 }
