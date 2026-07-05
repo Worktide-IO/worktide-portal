@@ -71,6 +71,7 @@ export type PortalNotification = {
 export type PortalMe = {
   contact: { id: string; firstName: string; lastName: string; email: string | null };
   customer: { id: string; name: string };
+  projects: { id: string; name: string }[];
   workspaceName: string;
   features: PortalFeatures;
 };
