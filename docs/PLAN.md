@@ -347,9 +347,9 @@ das Frontend zeigt „KI-Vorschlag ist derzeit nicht verfügbar."
   angemahnt), bernstein ab ≤ 7 Tagen.
 
 **Bewusst NICHT im Frontend-only-Batch** (brauchen Backend-Daten, daher offen): Social-Bildvorschau +
-Inline-Textbearbeitung (keine Media-URLs / kein Update-Endpoint), Vorher/Nachher-Mockup bei Vorschlägen
-(keine Mockup-URL), @Mention bei Tickets. (Der „Wartet auf mich"-Filter und der Projekt-Picker bei neuen
-Tickets sind inzwischen erledigt — 2026-07-05, je eigener Abschnitt unten.)
+Inline-Textbearbeitung (keine Media-URLs / kein Update-Endpoint), @Mention bei Tickets. (Der „Wartet
+auf mich"-Filter, der Projekt-Picker bei neuen Tickets und das Vorher/Nachher-Mockup bei Vorschlägen sind
+inzwischen erledigt — 2026-07-05, je eigener Abschnitt unten.)
 
 ---
 
@@ -519,3 +519,25 @@ diese Menge (`resolveProject()`: gegebene ID wenn erlaubt · das einzige Projekt
 sobald der Kunde **>1** Projekt hat (Default = erstes); `projectId` wird dann mitgeschickt. Bei genau
 einem Projekt bleibt das Feld verborgen und das Backend ordnet automatisch zu. End-to-end verifiziert
 (Ticket im 2. Projekt „Wartung & Support (Retainer)" angelegt → landet dort). Suite 209 grün.
+
+---
+
+## Umgesetzt nach P1 — Vorher/Nachher-Mockup bei Vorschlägen (Screen 7)
+
+> Ausgeliefert 2026-07-05. Backlog-Punkt „Vorschläge: Vorher/Nachher-Mockup — keine Mockup-URL im
+> `ProjectProposal`".
+
+**Backend (`worktide`):** `ProjectProposal` bekommt `mockupBeforeUrl` + `mockupAfterUrl` (VARCHAR 1024,
+nullable, `Assert\Url`) — Migration `Version20260705153833` (2 Spalten). Es sind **Agentur-gehostete
+Bild-URLs** (deren Asset-Host/CDN), keine Uploads; im Portal read-only. Die Staff-Seite setzt sie über
+die **bestehende** `ProjectProposal`-API (`PATCH /v1/project_proposals/{id}`, `EDIT`-guarded) — kein
+neuer Endpoint nötig. Der Portal-DTO liefert beide Felder.
+
+**Frontend (`worktide-portal`, `ProposalsPage`):** neue `MockupCompare`-Sektion in der Vorschlags-Karte
+— „Vorher"/„Nachher" nebeneinander (Grid, klickbar → Vollbild im neuen Tab). Jedes Bild ist optional;
+eine kaputte/unerreichbare URL blendet sich via `onError` still aus (kein Broken-Image-Icon).
+
+**Ehrliche Einschränkung:** Bilder sind **URL-Referenzen**, kein Datei-Upload — die Agentur hostet sie
+(z.B. auf ihrem CDN). Ein echter Upload-Fluss über das `File`/`FileStorage`-System (wie Ticket-Anhänge)
+wäre ein späterer Ausbau. End-to-end verifiziert (Portal rendert Vorher/Nachher; Staff-PATCH gültig →
+gespeichert, ungültige URL → 422). Suite 209 grün.
