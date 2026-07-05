@@ -421,3 +421,32 @@ Endpoint 403.
 
 **Granularität:** Feature-Key/Screen-Ebene (deckt „Rechnungen/Verträge pro Kontakt verbergen"). Feiner
 (einzelne Dashboard-Kachel wie nur „Budget") wäre ein späterer Ausbau.
+
+---
+
+## Umgesetzt nach P1 — Strukturiertes SLA (Reaktion + Lösung, Pause, per-Customer)
+
+> Ausgeliefert 2026-07-05. Ersetzt das frühere Ein-Ziel-SLA. Backlog-Punkt „Per-Customer
+> strukturiertes SLA — Reaktions- UND Lösungszeiten, Pause bei ‚wartet auf Kunde'".
+
+**Backend (`worktide`):** `PortalSlaCalculator` neu mit ZWEI Zielen je Priorität — **Reaktion**
+(erste Agentur-Antwort) + **Lösung** (Ticket erledigt). Policy geschichtet: built-in `DEFAULTS`
+(response/resolution) → Workspace `settings.portal.sla` → **`Customer.slaPolicy`** (neu, JSON, überstuert
+per Priorität). Shape `{priority: {response, resolution}}` (blanke Zahl = Lösung, back-compat; 0 = keine
+SLA). Je Leg: met/missed (erreicht vs. Frist), due/overdue (offen), **paused** wenn das Ticket auf einer
+als **`TaskStatus.isWaitingForCustomer`** markierten Status steht. Reaktion-Erkennung: erster
+nicht-versteckter Kommentar, der NICHT vom Portal-User stammt (`CommentRepository::firstAgencyReplyByTask`,
+1 Query für alle sichtbaren Tickets). DTO `sla = {paused, response{status,label,dueAt}, resolution{…}}`.
+Migration `Version20260705133630` (2 Spalten). Unit-Test (7 Fälle: beide Legs, met/missed, pause,
+struktur-/blank-Override, 0-disable). Suite 208 grün.
+
+**Frontend (`worktide-portal`):** Ticket-Liste zeigt das **Lösungs**-Leg im `SlaBadge` (inkl.
+„pausiert"); Ticket-Detail zeigt **Reaktion + Lösung** getrennt (grün erfüllt / rot überschritten /
+bernstein pausiert) + „wartet auf Sie".
+
+**Staff-UI (`worktide-web`, `PortalSettingsPage`):** SLA-Karte auf je Priorität **zwei** Felder
+(Reaktion / Lösung) umgestellt; schreibt die strukturierte `settings.portal.sla`.
+
+**Ehrliche Einschränkungen:** Pause ist **Ist-Zustand** (kein Abzug historischer Wartezeit von der
+Frist — bräuchte Status-Historie). Per-Customer-Policy ist les-/seedbar, aber der **per-Customer-Editor**
+(Staff-UI) fehlt noch — Workspace-Default ist editierbar.
