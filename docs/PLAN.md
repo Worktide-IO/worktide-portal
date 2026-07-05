@@ -394,3 +394,30 @@ Nummer/Datum/Fälligkeit, farbcodiertem Status-Badge (Offen/Überfällig/Bezahlt
 **Dark bis konfiguriert:** der reale Sync braucht einen lexoffice-`Channel` mit API-Key; lokal per
 Seed befüllt (4 Demo-Rechnungen bei Acme, `invoices`-Flag an). **Verschoben:** PDF-Download
 (lexoffice `/invoices/{id}` → `files.documentFileId` → `/files/{id}`).
+
+---
+
+## Umgesetzt nach P1 — Per-Contact-Sichtbarkeit (Capability×Role, Screen 1)
+
+> Ausgeliefert 2026-07-05. Backlog-Punkt „Per-Contact Capability×Role-Sichtbarkeit". Bis dahin gab es
+> nur per-Workspace Feature-Flags; jetzt kann ein einzelner Kontakt Bereiche AUSGEBLENDET bekommen,
+> die der Workspace aktiviert hat (Wireframe: „nicht jeder sieht Budget/Rechnungen/Verträge").
+
+**Backend (`worktide`):** net-new Feld **`Contact.portalHiddenFeatures`** (JSON-Liste von Feature-Keys,
+die für diesen Kontakt versteckt sind; Abwesenheit = sichtbar). Migration `Version20260705131350`.
+`PortalAccessResolver::features()` schneidet jetzt: effektiv = Workspace-Features **minus** die
+Hidden-Keys des Kontakts. Da alle Endpoints über `assertFeatureEnabled()` gaten und `/portal/me` die
+`features`-Map liefert, greift das Gating **überall automatisch** (Endpoint → 403, Nav-Item weg) — kein
+weiterer Backend-Code. `Contact` ist bereits per `PATCH /v1/contacts/{id}` (Workspace-EDIT) schreibbar.
+Functional-Test (Workspace-Feature an, pro Kontakt versteckt → `/me` false + Endpoint 403). Suite 207 grün.
+
+**Staff-UI (`worktide-web`):** Karte **„Portal-Sichtbarkeit"** auf dem Kontakt-Datensatz (nur wenn
+Portal-Zugang aktiv), neben „Kundenportal-Zugang". Ein Switch je **im Workspace aktiviertem** Bereich
+(Tickets ausgenommen — Kern), an = sichtbar, aus = ausgeblendet; schreibt `portalHiddenFeatures` via
+`PATCH /v1/contacts/{id}`. End-to-end verifiziert: Toggle aus → Portal-`/me` blendet den Bereich aus,
+Endpoint 403.
+
+**Portal-Frontend:** keine Änderung nötig — Nav + Endpoints respektieren die `features`-Map bereits.
+
+**Granularität:** Feature-Key/Screen-Ebene (deckt „Rechnungen/Verträge pro Kontakt verbergen"). Feiner
+(einzelne Dashboard-Kachel wie nur „Budget") wäre ein späterer Ausbau.
