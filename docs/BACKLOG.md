@@ -35,8 +35,9 @@
 - [ ] **Social:** Bildvorschau + Inline-Textbearbeitung vor Freigabe — keine Media-URLs / kein
       Update-Body-Endpoint (heute nur `mediaCount`).
 - [ ] **Vorschläge:** Vorher/Nachher-Mockup — keine Mockup-URL im `ProjectProposal`.
-- [ ] **Tickets:** @Mention im Antwort-Composer; „Wartet auf mich"-Filter (braucht passenden
-      `TaskStatus`); Projekt-Picker bei neuem Ticket (braucht Projekt-Set in `/portal/me`).
+- [ ] **Tickets:** @Mention im Antwort-Composer; Projekt-Picker bei neuem Ticket (braucht Projekt-Set
+      in `/portal/me`). — **„Wartet auf mich"-Filter ✓ erledigt 2026-07-05** (durch
+      `TaskStatus.isWaitingForCustomer` aus dem SLA-Feature entsperrt: DTO `waitingForYou` + Filter-Chip).
 
 ## Ops / Config
 - [ ] **Monitoring-Probe in Prod aktivieren** — der `ddev-cron`-Job
