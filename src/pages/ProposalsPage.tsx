@@ -104,6 +104,41 @@ export function ProposalsPage() {
   );
 }
 
+// Before/after mockup images ("Vorher/Nachher"). Agency-hosted URLs; each is
+// optional. A broken/unreachable image quietly removes itself so the card
+// never shows a broken-image icon.
+function MockupImage({ url, label }: { url: string; label: string }) {
+  const [broken, setBroken] = useState(false);
+  if (broken) return null;
+  return (
+    <figure className="min-w-0 space-y-1">
+      <figcaption className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</figcaption>
+      <a href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg border border-slate-200">
+        <img
+          src={url}
+          alt={label}
+          loading="lazy"
+          onError={() => setBroken(true)}
+          className="h-40 w-full bg-slate-50 object-cover transition hover:opacity-90"
+        />
+      </a>
+    </figure>
+  );
+}
+
+function MockupCompare({ beforeUrl, afterUrl }: { beforeUrl: string | null; afterUrl: string | null }) {
+  if (!beforeUrl && !afterUrl) return null;
+  return (
+    <div className="mt-4 space-y-2">
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Mockup</div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        {beforeUrl ? <MockupImage url={beforeUrl} label="Vorher" /> : null}
+        {afterUrl ? <MockupImage url={afterUrl} label="Nachher" /> : null}
+      </div>
+    </div>
+  );
+}
+
 function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onChange: (p: PortalProposal) => void }) {
   const [variant, setVariant] = useState<number | undefined>(undefined);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
@@ -150,6 +185,8 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
         ) : null}
         {p.timeframeText ? <span className="rounded bg-slate-100 px-2 py-0.5">{p.timeframeText}</span> : null}
       </div>
+
+      <MockupCompare beforeUrl={p.mockupBeforeUrl} afterUrl={p.mockupAfterUrl} />
 
       {p.variants.length > 0 && !decided ? (
         <div className="mt-4 space-y-2">
