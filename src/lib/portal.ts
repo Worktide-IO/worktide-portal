@@ -182,6 +182,19 @@ export type PortalAgreements = {
   projectOffers: PortalProjectOffer[];
 };
 
+// Rechnungen — read-only invoices mirrored from lexoffice (feature: invoices).
+export type PortalInvoice = {
+  id: string;
+  number: string;
+  issuedOn: string;
+  dueOn: string | null;
+  totalCents: number;
+  openCents: number | null;
+  currency: string;
+  status: string; // open | paid | voided | overdue
+  statusLabel: string;
+};
+
 // Ziele & Ideen (screen 5). Goals are read-only; ideas support submit + vote.
 export type PortalGoal = {
   id: string;
@@ -395,6 +408,9 @@ export const portalApi = {
   dashboard: () => api.get<PortalDashboard>('/portal/dashboard').then((r) => r.data),
 
   agreements: () => api.get<PortalAgreements>('/portal/agreements').then((r) => r.data),
+
+  invoices: () =>
+    api.get<{ invoices: PortalInvoice[] }>('/portal/invoices').then((r) => r.data.invoices),
 
   signAgreement: (id: string, fullName: string) =>
     api.post<PortalAgreement>(`/portal/agreements/${id}/sign`, { fullName }).then((r) => r.data),
