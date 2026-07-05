@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ArrowLeft, Paperclip, Sparkles, X } from 'lucide-react';
 
@@ -22,12 +22,26 @@ export function NewTicketPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState('normal');
+  const [projects, setProjects] = useState<{ id: string; name: string }[]>([]);
+  const [projectId, setProjectId] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [suggesting, setSuggesting] = useState(false);
   const [suggestNote, setSuggestNote] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load the customer's visible projects to offer a target picker. With one
+  // project the backend auto-assigns it; with several it requires projectId.
+  useEffect(() => {
+    portalApi
+      .me()
+      .then((me) => {
+        setProjects(me.projects);
+        if (me.projects.length > 0) setProjectId(me.projects[0].id);
+      })
+      .catch(() => setProjects([]));
+  }, []);
 
   function addFiles(list: FileList | null) {
     if (list) setFiles((prev) => [...prev, ...Array.from(list)]);
@@ -51,15 +65,19 @@ export function NewTicketPage() {
     }
   }
 
-  // With a single external project the backend picks it automatically; if the
-  // customer has several it returns 400 asking for projectId — surfaced below.
-  // (Project picker is a later enhancement once /portal/me exposes the set.)
+  // The picker below sends projectId when the customer has several projects;
+  // with a single project we omit it and the backend auto-assigns that one.
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      const created = await portalApi.createTicket({ title, description, priority });
+      const created = await portalApi.createTicket({
+        title,
+        description,
+        priority,
+        ...(projects.length > 1 && projectId ? { projectId } : {}),
+      });
       // Attach files to the freshly-created ticket (best-effort, sequential).
       for (const file of files) {
         await portalApi.uploadAttachment(created.id, file);
@@ -110,6 +128,22 @@ export function NewTicketPage() {
           />
           {suggestNote ? <p className="mt-1 text-xs text-violet-700">{suggestNote}</p> : null}
         </div>
+        {projects.length > 1 ? (
+          <label className="block text-sm">
+            Projekt
+            <select
+              value={projectId}
+              onChange={(e) => setProjectId(e.target.value)}
+              className="mt-1 w-full rounded border border-slate-300 bg-white px-3 py-2"
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <label className="block text-sm">
           Priorität
           <select
