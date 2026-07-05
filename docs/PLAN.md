@@ -348,8 +348,8 @@ das Frontend zeigt „KI-Vorschlag ist derzeit nicht verfügbar."
 
 **Bewusst NICHT im Frontend-only-Batch** (brauchen Backend-Daten, daher offen): Social-Bildvorschau +
 Inline-Textbearbeitung (keine Media-URLs / kein Update-Endpoint), Vorher/Nachher-Mockup bei Vorschlägen
-(keine Mockup-URL), @Mention / Projekt-Picker bei Tickets. (Der „Wartet auf mich"-Filter ist inzwischen
-erledigt — 2026-07-05, siehe eigener Abschnitt unten.)
+(keine Mockup-URL), @Mention bei Tickets. (Der „Wartet auf mich"-Filter und der Projekt-Picker bei neuen
+Tickets sind inzwischen erledigt — 2026-07-05, je eigener Abschnitt unten.)
 
 ---
 
@@ -502,3 +502,20 @@ erscheint, sobald ≥1 Ticket `waitingForYou` ist, und filtert die Liste darauf.
 je NICHT-abgeschlossenem `TaskStatus`, PATCHt `task_statuses/{id}` `{waitingForCustomer}`. Markierte Status
 pausieren die SLA und lassen Tickets im Portal unter „Wartet auf mich" erscheinen. End-to-end verifiziert
 (Toggle an → persistiert → aus → persistiert). Suite 209 grün.
+
+---
+
+## Umgesetzt nach P1 — Projekt-Picker bei neuem Ticket (Screen 2)
+
+> Ausgeliefert 2026-07-05. Schließt den aus P1 zurückgestellten Projekt-Picker (§5) ab.
+
+**Backend (`worktide`):** `GET /v1/portal/me` liefert jetzt zusätzlich `projects` — die sichtbaren
+(externen, nicht-archivierten) Projekte des Kunden aus `PortalAccessResolver::allowedProjects()`, je
+`{id, name}`. Die Ticket-Erstellung (`POST /v1/portal/tickets`) validierte `projectId` bereits gegen
+diese Menge (`resolveProject()`: gegebene ID wenn erlaubt · das einzige Projekt wenn genau eins · sonst
+400/409) — es fehlte nur die Projektliste im Frontend.
+
+**Frontend (`worktide-portal`, `NewTicketPage`):** lädt `/portal/me` und zeigt ein Projekt-`<select>`,
+sobald der Kunde **>1** Projekt hat (Default = erstes); `projectId` wird dann mitgeschickt. Bei genau
+einem Projekt bleibt das Feld verborgen und das Backend ordnet automatisch zu. End-to-end verifiziert
+(Ticket im 2. Projekt „Wartung & Support (Retainer)" angelegt → landet dort). Suite 209 grün.
