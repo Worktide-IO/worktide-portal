@@ -152,6 +152,8 @@ export type PortalAgreement = {
   hasDocument: boolean;
   canSign: boolean;
   signedBy: string | null;
+  inquiry: string | null; // customer's latest "Rückfrage" on an open offer
+  inquiredAt: string | null;
   lineItems: PortalAgreementLineItem[];
   totalCents: number;
   currency: string;
@@ -421,6 +423,9 @@ export const portalApi = {
 
   signAgreement: (id: string, fullName: string) =>
     api.post<PortalAgreement>(`/portal/agreements/${id}/sign`, { fullName }).then((r) => r.data),
+
+  inquireAgreement: (id: string, message: string) =>
+    api.post<PortalAgreement>(`/portal/agreements/${id}/inquiry`, { message }).then((r) => r.data),
 
   goals: () => api.get<{ goals: PortalGoal[] }>('/portal/goals').then((r) => r.data.goals),
 

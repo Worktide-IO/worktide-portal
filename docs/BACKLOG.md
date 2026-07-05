@@ -18,7 +18,10 @@
       (Feature-Keys pro Kontakt ausblenden), `features()` = Workspace-Features minus diese; Staff-Toggles
       unter Kontakt → „Portal-Sichtbarkeit". Siehe PLAN.md. (Granularität = Feature-Key/Screen; feiner —
       z.B. einzelne Dashboard-Kachel — wäre späterer Ausbau.)
-- [ ] **„Rückfrage stellen" auf einem Angebot** (Agreement-Verhandlung) + **KI-Klauselerklärung**.
+- [x] **„Rückfrage stellen" auf einem Angebot** — ✓ erledigt 2026-07-05 (Kunde stellt eine Frage zum
+      offenen Angebot; als Notiz am Agreement gespeichert, Angebot bleibt offen). Siehe PLAN.md.
+      OFFEN: **KI-Klauselerklärung** (parkiert — braucht Anthropic-Key); Staff-Benachrichtigung über
+      neue Rückfragen (die Frage steht am Agreement, aber es gibt kein Agentur-Notification-Signal).
 
 ## KI-gestützt (braucht `ANTHROPIC_API_KEY` + `EGRESS_ALLOW=llm`)
 - [ ] **KI-Moderation/-Zusammenfassung** im Brainstorming-Board (Board rendert AI-Beiträge bereits,

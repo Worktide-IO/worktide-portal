@@ -450,3 +450,25 @@ bernstein pausiert) + „wartet auf Sie".
 **Ehrliche Einschränkungen:** Pause ist **Ist-Zustand** (kein Abzug historischer Wartezeit von der
 Frist — bräuchte Status-Historie). Per-Customer-Policy ist les-/seedbar, aber der **per-Customer-Editor**
 (Staff-UI) fehlt noch — Workspace-Default ist editierbar.
+
+---
+
+## Umgesetzt nach P1 — „Rückfrage stellen" auf einem Angebot (Screen 4)
+
+> Ausgeliefert 2026-07-05. Backlog-Punkt „Rückfrage stellen" (die KI-Klauselerklärung bleibt parkiert
+> — braucht Anthropic-Key).
+
+**Backend (`worktide`):** `CustomerAgreement` bekommt `customerInquiry` (Text) + `inquiredAt`
+(Migration `Version20260705135009`). Neuer Endpoint `POST /v1/portal/agreements/{id}/inquiry`
+{message} — Feature-Gate `agreements`, Kundenscope + `isSignable`-Guard (nur offene Angebote, sonst
+409), speichert die Frage + Zeitstempel. **Kein Statuswechsel** (eine Rückfrage ist keine
+Entscheidung — das Angebot bleibt offen; die Statusmaschine/AgreementService bleibt unangetastet).
+DTO liefert `inquiry` + `inquiredAt`. Functional-Test (leer → 400, gültig → gespeichert + weiterhin
+signierbar). Suite 209 grün.
+
+**Frontend (`worktide-portal`, `AgreementsPage`):** auf offenen Angeboten neben „Digital signieren"
+ein **„Rückfrage stellen"**-Button → Textarea → sendet; die gestellte Rückfrage wird danach am
+Angebot angezeigt („Ihre Rückfrage · Datum: …").
+
+**Ehrliche Einschränkung:** die Frage steht am Agreement (Staff sieht sie dort), aber es gibt **kein
+Agentur-Benachrichtigungssignal** für neue Rückfragen — Follow-up.
