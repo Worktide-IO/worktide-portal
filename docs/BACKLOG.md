@@ -14,8 +14,10 @@
       bei „wartet auf Kunde". Heute nur abgeleitete Default-Policy pro Priorität
       (`PortalSlaCalculator` + `settings.portal.sla`, Staff-Editor unter Einstellungen → Kundenportal).
 - [x] **Benachrichtigungen 🔔** — ✓ erledigt 2026-07-05 (Header-Glocke + Feed; derived, siehe PLAN.md).
-- [ ] **Per-Contact Capability×Role-Sichtbarkeit** — Budget/Rechnungen etc. pro Kontakt schaltbar.
-      Heute nur per-Workspace Feature-Flags (`settings.portal.features`).
+- [x] **Per-Contact Capability×Role-Sichtbarkeit** — ✓ erledigt 2026-07-05: `Contact.portalHiddenFeatures`
+      (Feature-Keys pro Kontakt ausblenden), `features()` = Workspace-Features minus diese; Staff-Toggles
+      unter Kontakt → „Portal-Sichtbarkeit". Siehe PLAN.md. (Granularität = Feature-Key/Screen; feiner —
+      z.B. einzelne Dashboard-Kachel — wäre späterer Ausbau.)
 - [ ] **„Rückfrage stellen" auf einem Angebot** (Agreement-Verhandlung) + **KI-Klauselerklärung**.
 
 ## KI-gestützt (braucht `ANTHROPIC_API_KEY` + `EGRESS_ALLOW=llm`)
