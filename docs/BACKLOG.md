@@ -12,7 +12,8 @@
       Offen/verschoben: PDF-Download (2. lexoffice-Hop `/invoices/{id}`→`/files/{id}`).
 - [x] **Per-Customer strukturiertes SLA** — ✓ erledigt 2026-07-05: Reaktions- **und** Lösungszeiten je
       Priorität, `Customer.slaPolicy` überstuert Workspace-Default, Pause via `TaskStatus.isWaitingForCustomer`.
-      Siehe PLAN.md. (Offen: per-Customer-Editor-UI + historische Pausen-Dauer statt Nur-Ist-Zustand.)
+      Siehe PLAN.md. Per-Customer-Editor-UI ✓ nachgeliefert 2026-07-05 (Kunden-Datensatz → Verträge →
+      „Kunden-SLA"). Offen: historische Pausen-Dauer statt Nur-Ist-Zustand.
 - [x] **Benachrichtigungen 🔔** — ✓ erledigt 2026-07-05 (Header-Glocke + Feed; derived, siehe PLAN.md).
 - [x] **Per-Contact Capability×Role-Sichtbarkeit** — ✓ erledigt 2026-07-05: `Contact.portalHiddenFeatures`
       (Feature-Keys pro Kontakt ausblenden), `features()` = Workspace-Features minus diese; Staff-Toggles
