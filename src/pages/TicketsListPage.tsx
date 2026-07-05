@@ -6,6 +6,7 @@ import { portalApi, type PortalTicket, type PortalTicketSla } from '@/lib/portal
 import { PriorityBadge } from '@/components/PriorityBadge';
 
 const ALL = '__all__';
+const WAITING = '__waiting__';
 
 // SLA cell — shows the resolution target, colored by status. Hidden when none.
 const SLA_STYLES: Record<string, string> = {
@@ -49,7 +50,10 @@ export function TicketsListPage() {
     return [...counts.entries()];
   }, [tickets]);
 
-  const visible = (tickets ?? []).filter((t) => status === ALL || t.statusLabel === status);
+  const waitingCount = (tickets ?? []).filter((t) => t.waitingForYou).length;
+  const visible = (tickets ?? []).filter((t) =>
+    status === ALL ? true : status === WAITING ? t.waitingForYou : t.statusLabel === status,
+  );
 
   return (
     <div className="space-y-4">
@@ -72,6 +76,9 @@ export function TicketsListPage() {
           {statuses.map(([label, count]) => (
             <Chip key={label} label={label} count={count} active={status === label} onClick={() => setStatus(label)} />
           ))}
+          {waitingCount > 0 ? (
+            <Chip label="Wartet auf mich" count={waitingCount} active={status === WAITING} onClick={() => setStatus(WAITING)} />
+          ) : null}
         </div>
       ) : null}
 
