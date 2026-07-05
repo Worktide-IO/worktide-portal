@@ -2,8 +2,26 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { ArrowLeft, Download, Paperclip } from 'lucide-react';
 
-import { portalApi, type PortalAttachment, type PortalTicketDetail } from '@/lib/portal';
+import { portalApi, type PortalAttachment, type PortalSlaLeg, type PortalTicketDetail } from '@/lib/portal';
 import { PriorityBadge } from '@/components/PriorityBadge';
+
+// One SLA target (Reaktion/Lösung) in the ticket header; hidden when no target.
+function SlaLeg({ label, leg }: { label: string; leg: PortalSlaLeg }) {
+  if (leg.status === 'none') return null;
+  const cls =
+    leg.status === 'overdue' || leg.status === 'missed'
+      ? 'text-red-600'
+      : leg.status === 'met'
+        ? 'text-green-600'
+        : leg.status === 'paused'
+          ? 'text-amber-600'
+          : 'text-slate-500';
+  return (
+    <span className={cls}>
+      {label}: {leg.label}
+    </span>
+  );
+}
 
 function formatBytes(n: number | null): string {
   if (n === null) return '';
@@ -94,19 +112,9 @@ export function TicketDetailPage() {
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
           {ticket.projectName ? <span>{ticket.projectName}</span> : null}
-          {ticket.sla.status !== 'none' ? (
-            <span
-              className={
-                ticket.sla.status === 'overdue' || ticket.sla.status === 'missed'
-                  ? 'text-red-600'
-                  : ticket.sla.status === 'met'
-                    ? 'text-green-600'
-                    : 'text-slate-500'
-              }
-            >
-              SLA: {ticket.sla.label}
-            </span>
-          ) : null}
+          <SlaLeg label="Reaktion" leg={ticket.sla.response} />
+          <SlaLeg label="Lösung" leg={ticket.sla.resolution} />
+          {ticket.sla.paused ? <span className="text-amber-600">· wartet auf Sie</span> : null}
         </div>
         {ticket.description ? <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">{ticket.description}</p> : null}
       </div>

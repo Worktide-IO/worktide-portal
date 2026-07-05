@@ -10,9 +10,9 @@
 - [x] **Rechnungen-Tab** (Angebote & Verträge) — ✓ erledigt 2026-07-05: net-new `Invoice`, aus
       lexoffice gespiegelt (`app:lexoffice:sync-invoices`), Portal-Sektion. Siehe PLAN.md.
       Offen/verschoben: PDF-Download (2. lexoffice-Hop `/invoices/{id}`→`/files/{id}`).
-- [ ] **Per-Customer strukturiertes SLA** — Reaktions- **und** Lösungszeiten pro Agreement, Pausieren
-      bei „wartet auf Kunde". Heute nur abgeleitete Default-Policy pro Priorität
-      (`PortalSlaCalculator` + `settings.portal.sla`, Staff-Editor unter Einstellungen → Kundenportal).
+- [x] **Per-Customer strukturiertes SLA** — ✓ erledigt 2026-07-05: Reaktions- **und** Lösungszeiten je
+      Priorität, `Customer.slaPolicy` überstuert Workspace-Default, Pause via `TaskStatus.isWaitingForCustomer`.
+      Siehe PLAN.md. (Offen: per-Customer-Editor-UI + historische Pausen-Dauer statt Nur-Ist-Zustand.)
 - [x] **Benachrichtigungen 🔔** — ✓ erledigt 2026-07-05 (Header-Glocke + Feed; derived, siehe PLAN.md).
 - [x] **Per-Contact Capability×Role-Sichtbarkeit** — ✓ erledigt 2026-07-05: `Contact.portalHiddenFeatures`
       (Feature-Keys pro Kontakt ausblenden), `features()` = Workspace-Features minus diese; Staff-Toggles
