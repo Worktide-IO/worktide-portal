@@ -22,6 +22,7 @@ export type PortalTicket = {
   identifier: string; // human key, e.g. WORK-142
   title: string;
   statusLabel: string;
+  waitingForYou: boolean; // status flagged "waiting on the customer"
   priority: string; // low | normal | high | urgent
   priorityLabel: string; // German label (Niedrig/Mittel/Hoch/Dringend)
   projectName: string | null;
