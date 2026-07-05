@@ -29,6 +29,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Resilience: a JSON endpoint should never hand a component a raw string. In
+// dev the Symfony profiler can append an error page after the JSON (a corrupt
+// var/cache Deprecations.log → "headers already sent"), so axios fails to parse
+// and returns the raw body. Salvage the leading JSON object (it ends exactly
+// where the appended "<!-- … -->" / HTML begins); reject if unsalvageable — so
+// callers hit their catch/error state instead of crashing on `data.foo`.
+api.interceptors.response.use((response) => {
+  if (typeof response.data === 'string' && response.data.length > 0) {
+    const cut = response.data.indexOf('<!--');
+    const jsonPart = (cut >= 0 ? response.data.slice(0, cut) : response.data).trim();
+    if (jsonPart === '') return response;
+    try {
+      response.data = JSON.parse(jsonPart);
+    } catch {
+      return Promise.reject(new Error('Malformed (non-JSON) response'));
+    }
+  }
+  return response;
+});
+
 // TODO(phase-1): on 401, try POST /auth/refresh with the refresh token and
 // replay the request once (mirror worktide-web/src/providers/authProvider.ts),
 // then fall back to logout. Kept minimal here so the auth flow is easy to read.
