@@ -448,8 +448,10 @@ bernstein pausiert) + „wartet auf Sie".
 (Reaktion / Lösung) umgestellt; schreibt die strukturierte `settings.portal.sla`.
 
 **Ehrliche Einschränkungen:** Pause ist **Ist-Zustand** (kein Abzug historischer Wartezeit von der
-Frist — bräuchte Status-Historie). Per-Customer-Policy ist les-/seedbar, aber der **per-Customer-Editor**
-(Staff-UI) fehlt noch — Workspace-Default ist editierbar.
+Frist — bräuchte Status-Historie). Per-Customer-Editor **nachgeliefert** (2026-07-05): Staff-Karte
+„Kunden-SLA" auf dem Kunden-Datensatz (Verträge-Tab, `worktide-web` `CustomerSlaCard`) editiert
+`Customer.slaPolicy` via `PATCH /v1/customers/{id}`; Platzhalter zeigen den geerbten Wert. Offen bleibt
+nur die **historische** Pausen-Dauer.
 
 ---
 
