@@ -127,8 +127,8 @@ Gegenprobe: Staff-Login funktioniert im Portal **nicht** (kein ROLE_PORTAL).
 - Granulare Capability×Role-Matrix pro Kontakt (Rechnungen/Monitoring/Verträge sichtbar schalten).
 - Magic-Link/SSO-Login, eigene Domain-Auslieferung/Branding pro Workspace, Mercure-Live-Updates.
 - **Tickets-Screen, aus P1 zurückgestellt:** SLA-Spalte, Datei-Anhang beim Erstellen, KI-Strukturierung,
-  @Mention, „Wartet auf mich"-Filter (siehe §5). (Ticket-Keys „WORK-142" sind via `Task.identifier`
-  bereits in P1 dabei.)
+  @Mention (siehe §5). Der „Wartet auf mich"-Filter ist **erledigt** (2026-07-05, eigener Abschnitt unten).
+  (Ticket-Keys „WORK-142" sind via `Task.identifier` bereits in P1 dabei.)
 - **Weitere Wireframe-Screens (2–8)** hinter `features`-Flags. Anders als früher angenommen meist
   „Portal-DTO über bestehende Entity", kein neues Subsystem — Backing laut `RECONCILIATION.md`:
   Monitoring (`CustomerSystem`+`InboundEvent`), Angebote/Verträge (`CustomerAgreement`+`ServiceSubscription`),
@@ -348,7 +348,8 @@ das Frontend zeigt „KI-Vorschlag ist derzeit nicht verfügbar."
 
 **Bewusst NICHT im Frontend-only-Batch** (brauchen Backend-Daten, daher offen): Social-Bildvorschau +
 Inline-Textbearbeitung (keine Media-URLs / kein Update-Endpoint), Vorher/Nachher-Mockup bei Vorschlägen
-(keine Mockup-URL), @Mention / „Wartet auf mich"-Filter / Projekt-Picker bei Tickets.
+(keine Mockup-URL), @Mention / Projekt-Picker bei Tickets. (Der „Wartet auf mich"-Filter ist inzwischen
+erledigt — 2026-07-05, siehe eigener Abschnitt unten.)
 
 ---
 
@@ -474,3 +475,30 @@ Angebot angezeigt („Ihre Rückfrage · Datum: …").
 
 **Ehrliche Einschränkung:** die Frage steht am Agreement (Staff sieht sie dort), aber es gibt **kein
 Agentur-Benachrichtigungssignal** für neue Rückfragen — Follow-up.
+
+---
+
+## Umgesetzt nach P1 — „Wartet auf mich"-Filter + Staff-Toggle (Screen 2)
+
+> Ausgeliefert 2026-07-05. Schließt den aus P1 zurückgestellten „Wartet auf mich"-Filter (§5) ab und
+> macht das SLA-Pause-Flag (`TaskStatus.isWaitingForCustomer`) staff-seitig steuerbar.
+
+**Backend (`worktide`):** der Portal-Ticket-DTO bekommt `waitingForYou` = `status.isWaitingForCustomer()`.
+Dasselbe Flag pausiert bereits die SLA (siehe „Strukturiertes SLA"). Damit Staff es setzen kann, ist
+`TaskStatus.isWaitingForCustomer` jetzt **API-schreibbar**.
+
+**GOTCHA (Serializer streift `is`-Präfix):** Symfony exponiert boolsche Getter OHNE `is`-Präfix —
+`isWaitingForCustomer()`/`isCompleted()` erscheinen als `waitingForCustomer`/`completed` im JSON. Lesen
+klappt automatisch; beim **Schreiben** sucht PropertyAccess einen Mutator zum de-präfixierten
+Property-Namen (`setWaitingForCustomer`). Die Projekt-Konvention `setIsX()` passt NICHT → das Feld ist
+still nur lesbar (PATCH liefert den alten Wert, kein Fehler). Fix: Alias-Setter `setWaitingForCustomer()`
+delegiert auf `setIsWaitingForCustomer()`. Frontend nutzt die de-präfixierten Keys (`waitingForCustomer`/
+`completed`) für Lesen UND PATCH.
+
+**Frontend (`worktide-portal`, `TicketsListPage`):** ein „Wartet auf mich"-Chip (Sentinel `__waiting__`)
+erscheint, sobald ≥1 Ticket `waitingForYou` ist, und filtert die Liste darauf.
+
+**Staff-UI (`worktide-web`, `PortalSettingsPage`):** neue Karte „Status ‚wartet auf Kunde'" — ein Switch
+je NICHT-abgeschlossenem `TaskStatus`, PATCHt `task_statuses/{id}` `{waitingForCustomer}`. Markierte Status
+pausieren die SLA und lassen Tickets im Portal unter „Wartet auf mich" erscheinen. End-to-end verifiziert
+(Toggle an → persistiert → aus → persistiert). Suite 209 grün.
