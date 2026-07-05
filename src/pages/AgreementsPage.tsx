@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { FileCheck2, FileText, PenLine, Receipt, Repeat } from 'lucide-react';
+import { FileCheck2, FileText, MessageCircleQuestion, PenLine, Receipt, Repeat } from 'lucide-react';
 
 import {
   portalApi,
@@ -49,7 +49,9 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
   // Only nudge on open offers (a signed contract's end date isn't a "hurry" signal).
   const expiry = a.isSigned ? null : expiryHint(a.validUntil);
   const [signOpen, setSignOpen] = useState(false);
+  const [inquiryOpen, setInquiryOpen] = useState(false);
   const [fullName, setFullName] = useState('');
+  const [inquiryMsg, setInquiryMsg] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,6 +65,21 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
       setSignOpen(false);
     } catch {
       setError('Signatur fehlgeschlagen.');
+      setBusy(false);
+    }
+  }
+
+  async function inquire(e: React.FormEvent) {
+    e.preventDefault();
+    if (!inquiryMsg.trim()) return;
+    setBusy(true);
+    setError(null);
+    try {
+      onChange(await portalApi.inquireAgreement(a.id, inquiryMsg.trim()));
+      setInquiryOpen(false);
+      setInquiryMsg('');
+    } catch {
+      setError('Rückfrage konnte nicht gesendet werden.');
       setBusy(false);
     }
   }
@@ -117,17 +134,18 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
         </div>
       ) : null}
 
+      {a.inquiry ? (
+        <div className="mt-3 rounded-md border border-slate-100 bg-slate-50 p-2.5 text-xs">
+          <span className="font-medium text-slate-600">
+            Ihre Rückfrage{a.inquiredAt ? ` · ${formatDate(a.inquiredAt)}` : ''}:
+          </span>
+          <p className="mt-0.5 whitespace-pre-wrap text-slate-600">{a.inquiry}</p>
+        </div>
+      ) : null}
+
       {a.canSign ? (
         <div className="mt-3">
-          {!signOpen ? (
-            <button
-              type="button"
-              onClick={() => setSignOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
-            >
-              <PenLine className="size-4" /> Digital signieren
-            </button>
-          ) : (
+          {signOpen ? (
             <form onSubmit={sign} className="space-y-2">
               <label className="block text-sm">
                 Ihr vollständiger Name (Unterschrift)
@@ -151,6 +169,45 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
                 </button>
               </div>
             </form>
+          ) : inquiryOpen ? (
+            <form onSubmit={inquire} className="space-y-2">
+              <label className="block text-sm">
+                Ihre Rückfrage an die Agentur
+                <textarea
+                  value={inquiryMsg}
+                  onChange={(e) => setInquiryMsg(e.target.value)}
+                  rows={3}
+                  autoFocus
+                  className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                />
+              </label>
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
+              <div className="flex gap-2">
+                <button type="submit" disabled={busy || !inquiryMsg.trim()} className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+                  {busy ? 'Senden…' : 'Rückfrage senden'}
+                </button>
+                <button type="button" onClick={() => setInquiryOpen(false)} className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-600">
+                  Abbrechen
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setSignOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+              >
+                <PenLine className="size-4" /> Digital signieren
+              </button>
+              <button
+                type="button"
+                onClick={() => setInquiryOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:border-slate-400"
+              >
+                <MessageCircleQuestion className="size-4" /> Rückfrage stellen
+              </button>
+            </div>
           )}
         </div>
       ) : null}
