@@ -35,7 +35,7 @@ export function TicketsListPage() {
         <h1 className="text-xl font-semibold">Meine Tickets</h1>
         <Link
           to="/tickets/new"
-          className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+          className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white"
         >
           <Plus className="size-4" /> Neues Ticket
         </Link>
@@ -91,7 +91,7 @@ function Chip({ label, count, active, onClick }: { label: string; count: number;
       type="button"
       onClick={onClick}
       className={`rounded-full px-3 py-1 text-xs font-medium ${
-        active ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+        active ? 'bg-[var(--brand-primary)] text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
       }`}
     >
       {label} <span className={active ? 'text-slate-300' : 'text-slate-400'}>{count}</span>

@@ -2,9 +2,14 @@
 @plugin "@tailwindcss/typography";
 
 /* Portal is deliberately plain — a calm, reduced, customer-facing surface.
-   Brand tokens can be lifted from ../worktide-web later (copy, don't import). */
+   White-label branding is applied at runtime: applyBranding() (src/lib/branding.ts)
+   overrides --brand-primary / --brand-accent on :root from GET /v1/branding, and
+   primary action buttons / active nav use bg-[var(--brand-primary)]. Defaults
+   below reproduce the stock Worktide look. */
 :root {
   color-scheme: light;
+  --brand-primary: #0F8C72;
+  --brand-accent: #E0623A;
 }
 
 body {

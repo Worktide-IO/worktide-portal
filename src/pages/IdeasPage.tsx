@@ -106,7 +106,7 @@ export function IdeasPage() {
           <button
             type="submit"
             disabled={busy || !title.trim()}
-            className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
             <Plus className="size-4" /> Einreichen
           </button>
@@ -121,7 +121,7 @@ export function IdeasPage() {
                 aria-pressed={idea.hasVoted}
                 className={`flex w-12 shrink-0 flex-col items-center rounded-md border px-1 py-1.5 text-sm transition ${
                   idea.hasVoted
-                    ? 'border-slate-900 bg-slate-900 text-white'
+                    ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white'
                     : 'border-slate-200 text-slate-600 hover:border-slate-400'
                 }`}
               >

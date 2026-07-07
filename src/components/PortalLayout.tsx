@@ -1,6 +1,5 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import {
-  Boxes,
   ClipboardList,
   FileText,
   FolderKanban,
@@ -16,6 +15,8 @@ import { Link, useLocation, useNavigate } from 'react-router';
 
 import { logout } from '@/providers/authProvider';
 import { portalApi, type PortalMe } from '@/lib/portal';
+import { BrandMark } from '@/components/BrandMark';
+import { Footer } from '@/components/Footer';
 
 /**
  * Portal chrome: a slim header + the full wireframe navigation, with only the
@@ -60,8 +61,7 @@ export function PortalLayout({ children }: { children: ReactNode }) {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/tickets" className="flex items-center gap-2 font-semibold">
-            <Boxes className="size-5 text-slate-900" />
-            Kundenportal
+            <BrandMark />
           </Link>
           <div className="flex items-center gap-4">
             {me ? (
@@ -99,7 +99,7 @@ export function PortalLayout({ children }: { children: ReactNode }) {
                   <li key={item.key}>
                     <Link
                       to={item.to!}
-                      className={`${base} ${active ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'}`}
+                      className={`${base} ${active ? 'bg-[var(--brand-primary)] text-white' : 'text-slate-700 hover:bg-slate-100'}`}
                     >
                       <Icon className="size-4" />
                       {item.label}
@@ -127,6 +127,7 @@ export function PortalLayout({ children }: { children: ReactNode }) {
 
         <main className="min-w-0 flex-1">{children}</main>
       </div>
+      <Footer className="py-6" />
     </div>
   );
 }

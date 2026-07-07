@@ -72,7 +72,7 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
             <button
               type="button"
               onClick={() => setSignOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+              className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white"
             >
               <PenLine className="size-4" /> Digital signieren
             </button>
@@ -92,7 +92,7 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
               </p>
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
               <div className="flex gap-2">
-                <button type="submit" disabled={busy || !fullName.trim()} className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+                <button type="submit" disabled={busy || !fullName.trim()} className="rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
                   {busy ? 'Signieren…' : 'Verbindlich signieren'}
                 </button>
                 <button type="button" onClick={() => setSignOpen(false)} className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-600">
