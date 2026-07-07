@@ -240,7 +240,7 @@ function SocialCard({ post: p, onChange }: { post: PortalSocialPost; onChange: (
               type="button"
               disabled={busy}
               onClick={() => run(() => portalApi.approveSocial(p.id))}
-              className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
               <Check className="size-4" /> Freigeben
             </button>
@@ -280,7 +280,7 @@ function SocialCard({ post: p, onChange }: { post: PortalSocialPost; onChange: (
                 placeholder="Was sollen wir ändern?"
                 className="flex-1 rounded border border-slate-300 px-3 py-2 text-sm"
               />
-              <button type="submit" disabled={busy || !message.trim()} className="rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+              <button type="submit" disabled={busy || !message.trim()} className="rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
                 Senden
               </button>
             </form>

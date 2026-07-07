@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 
 import { setPassword } from '@/providers/authProvider';
+import { Footer } from '@/components/Footer';
 
 /**
  * Landing page for the "set your password" email link sent when staff grant a
@@ -29,7 +30,7 @@ export function SetPasswordPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-slate-50 px-4">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <h1 className="text-xl font-semibold">Passwort festlegen</h1>
         {!token ? (
@@ -51,12 +52,13 @@ export function SetPasswordPage() {
             </label>
             <p className="text-xs text-slate-500">Mindestens 10 Zeichen (Backend-Policy).</p>
             {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            <button type="submit" className="w-full cursor-pointer rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white">
+            <button type="submit" className="w-full cursor-pointer rounded bg-[var(--brand-primary)] px-4 py-2 text-sm font-medium text-white">
               Passwort speichern
             </button>
           </>
         )}
       </form>
+      <Footer />
     </div>
   );
 }

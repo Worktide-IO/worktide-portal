@@ -150,7 +150,7 @@ export function FormFillPage() {
                 type="button"
                 onClick={() => setStep(i)}
                 className={`flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm ${
-                  i === step ? 'bg-slate-900 text-white' : 'text-slate-700 hover:bg-slate-100'
+                  i === step ? 'bg-[var(--brand-primary)] text-white' : 'text-slate-700 hover:bg-slate-100'
                 }`}
               >
                 <span className="truncate">
@@ -188,7 +188,7 @@ export function FormFillPage() {
               <button
                 type="button"
                 onClick={() => setStep((s) => Math.min(sections.length - 1, s + 1))}
-                className="inline-flex items-center gap-1.5 rounded bg-slate-900 px-3 py-2 text-sm font-medium text-white"
+                className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white"
               >
                 Weiter <ArrowRight className="size-4" />
               </button>
@@ -196,7 +196,7 @@ export function FormFillPage() {
               <button
                 type="submit"
                 disabled={busy}
-                className="rounded bg-slate-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+                className="rounded bg-[var(--brand-primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
               >
                 {busy ? 'Senden…' : 'Absenden'}
               </button>
