@@ -541,3 +541,45 @@ eine kaputte/unerreichbare URL blendet sich via `onError` still aus (kein Broken
 (z.B. auf ihrem CDN). Ein echter Upload-Fluss über das `File`/`FileStorage`-System (wie Ticket-Anhänge)
 wäre ein späterer Ausbau. End-to-end verifiziert (Portal rendert Vorher/Nachher; Staff-PATCH gültig →
 gespeichert, ungültige URL → 422). Suite 209 grün.
+
+---
+
+## Umgesetzt nach P1 — Formular-Engine (Tally-artig, v1) · Screen 8
+
+Ausgeliefert 2026-07-08. Baut den generischen Fragebogen-Baustein (`PublicForm`) zur mehrseitigen
+Engine mit bedingter Logik aus (Referenz: `api.tally.so`, siehe `../worktide/docs/customer-portal-ideas.md` §10).
+> **Grenze:** Der visuelle Builder gehört **ausschließlich in `worktide-web`** (Staff-SPA) und ist
+> **nicht** Teil dieser v1. Das Portal **rendert** Formulare und **sendet** das Ergebnis; Authoring
+> erfolgt vorerst per API/JSON (`PATCH /v1/public_forms/{id}` mit dem `schema`-Feld).
+
+**Datenmodell (`worktide`):** neue Spalten `public_forms.form_schema` (JSON, v2-Dokument — `form_schema`
+statt `schema`, da MySQL-Reserved-Word) + `schema_version` (Migration `Version20260708092233`). Ein
+**`FormSchemaNormalizer`** ist die einzige Struktur-Quelle: v2-Dokument (`pages → blocks` + `logic` +
+`calc`) oder — bei `schema_version=1` — synthetisiert aus dem Legacy-`fields` (1 Page je `section`).
+Kein Datenmigrations-Schritt, alle Alt-Formulare laufen unverändert weiter.
+
+**Engine (`worktide`):** **`FormLogicEvaluator`** (reine Auswertung) — Branching (`show`/`hide` von
+Block/Page, `jump` zwischen Pages), Bedingungen `eq|neq|contains|gt|gte|lt|lte|in|empty|not_empty`
+über `all`/`any`, und **Calc als struktureller AST** (`+ - * /`, kein `eval`). `PublicFormSubmissionService`
+re-evaluiert **server-autoritativ**: nur *aktive* (sichtbare, erreichbare, nicht-hidden) Felder werden
+validiert/required, Calc wird server-seitig gerechnet (Client-Werte ignoriert), Hidden/Prefill kommt aus
+**`FormPrefillResolver`** (Whitelist `contact.id|contact.email|contact.name|project.id`), nie aus dem Body.
+Neue Feldtypen: `multi_select`, `rating`, `scale`, `matrix`, `file` (v1 = URL-Referenz). Webhook bei
+Abschluss über `publicformsubmission.created` (bestehende HMAC-Pipeline). DTO (`/v1/portal/forms/{id}`
++ anonym `/v1/forms/{slug}`) liefert `schema` (v2) **und** `fields` (Back-Compat); `mapsTo`/`prefillFrom`
+werden nie exponiert.
+
+**Frontend (`worktide-portal`):** `src/lib/formLogic.ts` (deckungsgleiche TS-Portierung des PHP-Evaluators),
+v2-Typen in `src/lib/portal.ts`, `FormFillPage.tsx` als seiten-/logik-getriebener Wizard (Jump-aware
+Navigation, live Sichtbarkeit + Calc-Anzeige, neue Feld-Komponenten). Draft/Resume, Fortschritt und
+422-Fehler-Mapping bleiben; Legacy-Formulare werden clientseitig zu einem v2-Schema gewrappt.
+
+**Tests:** `FormLogicEvaluatorTest` (9) + erweiterte `PublicFormSubmissionServiceTest` (Branching-Skip,
+Calc server-seitig/ignoriert Client, Prefill-Override, neue Typen) + `PortalEndpointsTest` (v2-Show ohne
+Interna, Submit-Roundtrip + Webhook, Feature-Gate, aktives Pflichtfeld). Gesamt-Suite grün (236).
+
+**Offene Follow-ups:**
+- **Visueller Builder in `worktide-web`** (eigene Phase; schreibt `schema` per `PATCH /v1/public_forms`).
+- **`file`-Feldtyp**: echter Upload-Widget an die polymorphe `File`-/Presigned-Infra (v1 = URL-Referenz).
+- **Browser-E2E**: automatisiert über HTTP/DB abgedeckt; manueller Portal-Durchlauf (Login → Formular →
+  Branching/Jump/Calc/Hidden/Draft/Submit) steht noch aus.
