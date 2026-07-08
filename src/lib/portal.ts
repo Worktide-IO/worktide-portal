@@ -261,16 +261,60 @@ export type PortalDocumentDetail = PortalDocument & {
   bodyFormat: string; // markdown
 };
 
-// SEO-Fragebogen / questionnaires (screen 8). One-shot fill+submit over the
-// PublicForm model; draft-save/multi-session is a modelling follow-up.
+// Formulare / questionnaires (screen 8), Tally-like engine (schema v2).
+// The backend sends both a flat `fields` list (back-compat) and a nested
+// `schema` document (pages → blocks + branching logic + calc). The renderer
+// prefers `schema` and falls back to `fields`.
 export type PortalFormField = {
   key: string;
   label: string;
-  type: string; // text | textarea | email | url | number | date | select | radio | checkbox
+  type: string; // text | long_text | email | url | number | date | boolean | select | multi_select | rating | scale | matrix | file
   required: boolean;
   options: string[];
   placeholder: string | null;
   section: string | null;
+};
+
+// --- v2 engine document ---------------------------------------------------
+
+export type FormBlock = {
+  id: string;
+  key: string;
+  type: string;
+  label: string;
+  required: boolean;
+  options: string[];
+  placeholder: string | null;
+  hidden: boolean;
+  min: number | null;
+  max: number | null;
+  rows: string[];
+};
+
+export type FormPage = {
+  id: string;
+  title: string | null;
+  blocks: FormBlock[];
+};
+
+// Condition atom read by the branching engine. `op` ∈
+// eq|neq|contains|gt|gte|lt|lte|in|empty|not_empty.
+export type LogicAtom = { field: string; op: string; value?: unknown };
+export type LogicCondition = { all?: LogicAtom[]; any?: LogicAtom[]; field?: string; op?: string; value?: unknown };
+export type LogicRule = {
+  if: LogicCondition;
+  then: { action: 'show' | 'hide' | 'jump'; target: string; from?: string };
+};
+
+// Structured calc AST (no string eval): {op,args} over {field}|{const} nodes.
+export type CalcNode = { op?: string; args?: CalcNode[]; field?: string; const?: number };
+export type CalcRule = { key: string; ast: CalcNode };
+
+export type FormSchema = {
+  version: number;
+  pages: FormPage[];
+  logic: LogicRule[];
+  calc: CalcRule[];
 };
 
 export type PortalFormSummary = {
@@ -285,6 +329,7 @@ export type PortalFormDetail = {
   title: string;
   description: string | null;
   successMessage: string | null;
+  schema: FormSchema | null;
   fields: PortalFormField[];
   draft: Record<string, unknown> | null;
   draftSavedAt: string | null;
