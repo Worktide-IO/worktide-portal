@@ -17,6 +17,10 @@ export type Branding = {
   imprintUrl: string;
   privacyUrl: string;
   supportEmail: string;
+  /** When true, a thin red demo banner is shown across the top of every page. */
+  demoMode: boolean;
+  /** Optional custom banner label; empty → the portal's default text. */
+  demoBannerText: string;
 };
 
 /** Stock Worktide look — used before the fetch resolves and as a fallback. */
@@ -30,6 +34,8 @@ export const DEFAULT_BRANDING: Branding = {
   imprintUrl: '',
   privacyUrl: '',
   supportEmail: '',
+  demoMode: false,
+  demoBannerText: '',
 };
 
 const CACHE_KEY = 'wtp.branding';
