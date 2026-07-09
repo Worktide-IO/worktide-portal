@@ -1,24 +1,29 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
-  AlertTriangle,
+  AtSign,
   Bell,
-  FileText,
+  CheckCheck,
   MessageSquare,
-  Share2,
+  Rocket,
+  Server,
   Sparkles,
+  UserPlus,
   type LucideIcon,
 } from 'lucide-react';
 
 import { portalApi, type PortalNotification } from '@/lib/portal';
 
 const TYPE_ICON: Record<string, LucideIcon> = {
-  ticket_reply: MessageSquare,
-  proposal: Sparkles,
-  social: Share2,
-  agreement: FileText,
-  incident: AlertTriangle,
+  mention: AtSign,
+  task_assigned: UserPlus,
+  comment: MessageSquare,
+  system: Server,
+  ai: Sparkles,
+  launch: Rocket,
 };
+
+const DROPDOWN_LIMIT = 8;
 
 function relativeTime(iso: string): string {
   const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
@@ -40,7 +45,7 @@ export function NotificationBell() {
 
   function load() {
     portalApi
-      .notifications()
+      .notifications({ limit: DROPDOWN_LIMIT })
       .then((d) => {
         setItems(d.items);
         setUnread(d.unreadCount);
@@ -52,27 +57,30 @@ export function NotificationBell() {
 
   useEffect(load, []);
 
-  function toggle() {
-    const next = !open;
-    setOpen(next);
-    if (next && unread > 0) {
-      // Opening the bell clears the badge (marks everything seen).
-      portalApi.markNotificationsRead().catch(() => {});
-      setUnread(0);
-      setItems((prev) => prev.map((n) => ({ ...n, read: true })));
-    }
+  function markOne(n: PortalNotification) {
+    if (n.read) return;
+    setItems((prev) => prev.map((it) => (it.id === n.id ? { ...it, read: true } : it)));
+    setUnread((c) => Math.max(0, c - 1));
+    portalApi.markNotificationRead(n.id).catch(load);
   }
 
-  function go(link: string) {
+  function markAll() {
+    setUnread(0);
+    setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+    portalApi.markAllNotificationsRead().catch(load);
+  }
+
+  function go(n: PortalNotification) {
+    markOne(n);
     setOpen(false);
-    navigate(link);
+    navigate(n.link);
   }
 
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={toggle}
+        onClick={() => setOpen((v) => !v)}
         aria-label="Benachrichtigungen"
         className="relative inline-flex size-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900"
       >
@@ -88,8 +96,17 @@ export function NotificationBell() {
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} aria-hidden />
           <div className="absolute right-0 z-20 mt-2 w-80 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
-            <div className="border-b border-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700">
-              Benachrichtigungen
+            <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
+              <span className="text-sm font-semibold text-slate-700">Benachrichtigungen</span>
+              <button
+                type="button"
+                onClick={markAll}
+                disabled={unread === 0}
+                className="inline-flex items-center gap-1 rounded px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40"
+              >
+                <CheckCheck className="size-3.5" />
+                Alle gelesen
+              </button>
             </div>
             {items.length === 0 ? (
               <p className="px-4 py-6 text-center text-sm text-slate-500">Keine Benachrichtigungen.</p>
@@ -101,10 +118,10 @@ export function NotificationBell() {
                     <li key={n.id}>
                       <button
                         type="button"
-                        onClick={() => go(n.link)}
+                        onClick={() => go(n)}
                         className={`flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-slate-50 ${n.read ? '' : 'bg-slate-50/60'}`}
                       >
-                        <Icon className={`mt-0.5 size-4 shrink-0 ${n.type === 'incident' ? 'text-red-500' : 'text-slate-400'}`} />
+                        <Icon className={`mt-0.5 size-4 shrink-0 ${n.type === 'system' ? 'text-red-500' : 'text-slate-400'}`} />
                         <span className="min-w-0 flex-1">
                           <span className="flex items-center gap-2">
                             <span className="truncate text-sm font-medium text-slate-800">{n.title}</span>
@@ -119,6 +136,18 @@ export function NotificationBell() {
                 })}
               </ul>
             )}
+            <div className="border-t border-slate-100 px-2 py-1.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  navigate('/benachrichtigungen');
+                }}
+                className="w-full rounded px-2 py-1.5 text-center text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+              >
+                Alle anzeigen
+              </button>
+            </div>
           </div>
         </>
       ) : null}
