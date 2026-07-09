@@ -1,0 +1,34 @@
+name: worktide-portal
+type: generic
+docroot: .
+php_version: "8.4"
+webserver_type: nginx-fpm
+xdebug_enabled: false
+
+# Reachable at both worktide-portal.ddev.site and worktide-portal.ddev.site.
+# The latter matches the backend's PORTAL_BASE_URL so the emailed
+# "set your password" links resolve in local dev.
+additional_fqdns:
+  - worktide-portal.ddev.site
+
+# Pure SPA — no database. Persistence lives in the worktide (backend) project;
+# the portal only talks to its API over /v1.
+omit_containers: [db]
+
+use_dns_when_possible: true
+nodejs_version: "22"
+corepack_enable: true
+
+web_environment:
+  # Same-origin API base; the Vite dev proxy (vite.config.ts) forwards /v1 to
+  # api.worktide.ddev.site, dodging CORS.
+  - VITE_API_BASE=/v1
+  # supervisord daemons run headless — skip pnpm's interactive prompts.
+  - CI=true
+
+# Run `pnpm dev` as a supervisord-managed daemon inside the web container;
+# nginx_full sits in front on 80/443 (see .ddev/nginx_full/nginx-site.conf).
+web_extra_daemons:
+  - name: vite
+    command: 'test -d node_modules || pnpm install --frozen-lockfile; exec pnpm dev --host 0.0.0.0 --port 5174'
+    directory: /var/www/html
