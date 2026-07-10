@@ -1,14 +1,13 @@
 import axios, { AxiosError } from 'axios';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { api, JWT_KEY, REFRESH_KEY, readToken, writeTokens } from './api';
+import { api, getAccessToken, setAccessToken } from './api';
 
 /**
- * 401 → refresh → replay contract (portal M4). We drive the REAL response
- * interceptor installed in api.ts through a stubbed axios adapter, so the test
- * exercises the shipped code path rather than a reimplementation. The adapter
- * decides 401-vs-200 from the Bearer token, mirroring the backend: the stale
- * JWT is rejected, the freshly-refreshed one is accepted.
+ * 401 → refresh → replay contract (portal M4, updated for M1). Access token in
+ * memory; refresh via the httpOnly cookie (no body token). We drive the REAL
+ * interceptor through a stubbed axios adapter: the stale Bearer is rejected, the
+ * refreshed one accepted, and the refresh endpoint returns just { token }.
  */
 
 function authHeader(config: { headers?: Record<string, unknown> & { get?: (k: string) => unknown } }): string {
@@ -39,7 +38,7 @@ function installAdapter(): void {
       refreshCalls += 1;
       return refreshFails
         ? reply(config, 401, { error: 'invalid refresh token' })
-        : reply(config, 200, { token: 'jwt-new', refresh_token: 'refresh-new' });
+        : reply(config, 200, { token: 'jwt-new' });
     }
     // Data endpoints: only the freshly-minted JWT is honoured.
     return authHeader(config) === 'Bearer jwt-new'
@@ -61,28 +60,29 @@ beforeEach(() => {
   vi.stubGlobal('window', { location: { pathname: '/tickets', assign } });
   refreshCalls = 0;
   refreshFails = false;
+  setAccessToken(null);
   installAdapter();
 });
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  setAccessToken(null);
 });
 
 describe('api 401 refresh interceptor', () => {
   it('refreshes once and replays the original request with the new token', async () => {
-    writeTokens('jwt-stale', 'refresh-1');
+    setAccessToken('jwt-stale');
 
     const res = await api.get('/tickets');
 
     expect(res.data).toEqual({ ok: true });
     expect(refreshCalls).toBe(1);
-    expect(readToken(JWT_KEY)).toBe('jwt-new');
-    expect(readToken(REFRESH_KEY)).toBe('refresh-new');
+    expect(getAccessToken()).toBe('jwt-new');
     expect(assign).not.toHaveBeenCalled();
   });
 
   it('coalesces concurrent 401s into a single refresh (rotation-safe)', async () => {
-    writeTokens('jwt-stale', 'refresh-1');
+    setAccessToken('jwt-stale');
 
     const all = await Promise.all([api.get('/a'), api.get('/b'), api.get('/c')]);
 
@@ -91,30 +91,31 @@ describe('api 401 refresh interceptor', () => {
   });
 
   it('clears the session and bounces to /login when refresh fails', async () => {
-    writeTokens('jwt-stale', 'refresh-bad');
+    setAccessToken('jwt-stale');
     refreshFails = true;
 
     await expect(api.get('/tickets')).rejects.toMatchObject({ response: { status: 401 } });
-    expect(readToken(JWT_KEY)).toBeNull();
-    expect(readToken(REFRESH_KEY)).toBeNull();
+    expect(getAccessToken()).toBeNull();
     expect(assign).toHaveBeenCalledWith('/login');
   });
 
-  it('logs out immediately on 401 when there is no refresh token', async () => {
-    // No tokens stored at all.
+  it('attempts a cookie refresh then logs out when there is no session', async () => {
+    // No in-memory token and the cookie is absent → the refresh 401s.
+    refreshFails = true;
+
     await expect(api.get('/tickets')).rejects.toMatchObject({ response: { status: 401 } });
-    expect(refreshCalls).toBe(0);
+    expect(refreshCalls).toBe(1);
     expect(assign).toHaveBeenCalledWith('/login');
   });
 
   it('does not retry a second time if the replay also 401s', async () => {
     // Refresh "succeeds" but the adapter never honours the new token either.
-    writeTokens('jwt-stale', 'refresh-1');
+    setAccessToken('jwt-stale');
     const adapter = (config: any) => {
       const url = `${config.baseURL ?? ''}${config.url ?? ''}`;
       if (url.includes('/auth/refresh')) {
         refreshCalls += 1;
-        return reply(config, 200, { token: 'jwt-new', refresh_token: 'refresh-new' });
+        return reply(config, 200, { token: 'jwt-new' });
       }
       return reply(config, 401, { error: 'still expired' });
     };

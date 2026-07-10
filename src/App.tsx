@@ -1,8 +1,9 @@
-import { lazy, Suspense, type ReactNode } from 'react';
+import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
 
 import { PortalLayout } from '@/components/PortalLayout';
-import { isAuthenticated } from '@/providers/authProvider';
+import { ensureAuthenticated } from '@/providers/authProvider';
+import { getAccessToken } from '@/lib/api';
 import { LoginPage } from '@/pages/LoginPage';
 import { SetPasswordPage } from '@/pages/SetPasswordPage';
 
@@ -28,8 +29,31 @@ const SocialPage = lazy(() => import('@/pages/SocialPage').then((m) => ({ defaul
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
 
 /** Gate authenticated routes; unauthenticated visitors go to /login. */
+/**
+ * Gate authenticated routes. The access token lives in memory, so on a fresh
+ * load/reload it's absent → we silently refresh from the httpOnly cookie
+ * (ensureAuthenticated) and show a loading state until it resolves. Once a token
+ * is in memory, navigation is synchronous.
+ */
 function RequireAuth({ children }: { children: ReactNode }) {
-  return isAuthenticated() ? <PortalLayout>{children}</PortalLayout> : <Navigate to="/login" replace />;
+  const [status, setStatus] = useState<'pending' | 'authed' | 'anon'>(() =>
+    getAccessToken() !== null ? 'authed' : 'pending',
+  );
+
+  useEffect(() => {
+    if (status !== 'pending') return;
+    let alive = true;
+    ensureAuthenticated().then((ok) => {
+      if (alive) setStatus(ok ? 'authed' : 'anon');
+    });
+    return () => {
+      alive = false;
+    };
+  }, [status]);
+
+  if (status === 'pending') return <p className="p-6 text-sm text-slate-500">Lädt…</p>;
+  if (status === 'anon') return <Navigate to="/login" replace />;
+  return <PortalLayout>{children}</PortalLayout>;
 }
 
 export default function App() {

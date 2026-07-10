@@ -50,7 +50,7 @@ export function PortalLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     portalApi.me().then(setMe).catch(() => {
       // Token invalid/expired or portal disabled → back to login.
-      logout();
+      void logout();
       navigate('/login');
     });
   }, [navigate]);
@@ -96,7 +96,7 @@ export function PortalLayout({ children }: { children: ReactNode }) {
             <button
               type="button"
               onClick={() => {
-                logout();
+                void logout();
                 navigate('/login');
               }}
               className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
