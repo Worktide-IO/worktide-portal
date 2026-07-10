@@ -80,7 +80,21 @@ export type PortalMe = {
   projects: { id: string; name: string }[];
   workspaceName: string;
   features: PortalFeatures;
+  // Preferred display language (a supported-locale code) or null = follow the
+  // workspace / app default. `supportedLanguages` is the server's allow-list.
+  preferredLanguage: string | null;
+  supportedLanguages: string[];
 };
+
+/** Human labels for locale codes; unknown codes fall back to the raw code. */
+export const LANGUAGE_LABELS: Record<string, string> = {
+  de: 'Deutsch',
+  en: 'English',
+};
+
+export function languageLabel(code: string): string {
+  return LANGUAGE_LABELS[code] ?? code;
+}
 
 // Dashboard (post-login landing). Every section is backed by a real, customer-
 // scoped source (see PortalDashboardController + docs/RECONCILIATION.md).
@@ -404,6 +418,14 @@ export type PortalTicketSuggestion = {
 
 export const portalApi = {
   me: () => api.get<PortalMe>('/portal/me').then((r) => r.data),
+
+  // Set the portal user's preferred display language (null = auto).
+  setLanguage: (preferredLanguage: string | null) =>
+    api
+      .patch<PortalMe>('/portal/me', { preferredLanguage }, {
+        headers: { 'Content-Type': 'application/merge-patch+json' },
+      })
+      .then((r) => r.data),
 
   notifications: (params: { cursor?: string | null; limit?: number; unread?: boolean } = {}) =>
     api
