@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "axios": "^1.17.0",
+    "event-source-plus": "^0.1.15",
     "lucide-react": "^1.18.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

@@ -7,7 +7,9 @@ import {
   LayoutDashboard,
   Lightbulb,
   LogOut,
+  Mail,
   Presentation,
+  Settings,
   Share2,
   Ticket,
 } from 'lucide-react';
@@ -40,6 +42,7 @@ const NAV: NavItem[] = [
   { key: 'social', label: 'Social-Freigabe', icon: Share2, to: '/social' },
   { key: 'documents', label: 'Wissen / Dateien', icon: FolderKanban, to: '/documents' },
   { key: 'forms', label: 'Fragebögen', icon: ClipboardList, to: '/forms' },
+  { key: 'newsletters', label: 'Newsletter', icon: Mail, to: '/newsletter' },
 ];
 
 export function PortalLayout({ children }: { children: ReactNode }) {
@@ -93,6 +96,15 @@ export function PortalLayout({ children }: { children: ReactNode }) {
               </select>
             ) : null}
             <NotificationBell />
+            <Link
+              to="/einstellungen"
+              aria-label="Einstellungen"
+              className={`inline-flex size-9 items-center justify-center rounded-full hover:bg-slate-100 ${
+                pathname.startsWith('/einstellungen') ? 'text-[var(--brand-primary)]' : 'text-slate-500 hover:text-slate-900'
+              }`}
+            >
+              <Settings className="size-5" />
+            </Link>
             <button
               type="button"
               onClick={() => {

@@ -27,6 +27,8 @@ const FormFillPage = lazy(() => import('@/pages/FormFillPage').then((m) => ({ de
 const ProposalsPage = lazy(() => import('@/pages/ProposalsPage').then((m) => ({ default: m.ProposalsPage })));
 const SocialPage = lazy(() => import('@/pages/SocialPage').then((m) => ({ default: m.SocialPage })));
 const NotificationsPage = lazy(() => import('@/pages/NotificationsPage').then((m) => ({ default: m.NotificationsPage })));
+const SettingsPage = lazy(() => import('@/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
+const NewslettersPage = lazy(() => import('@/pages/NewslettersPage').then((m) => ({ default: m.NewslettersPage })));
 
 /** Gate authenticated routes; unauthenticated visitors go to /login. */
 /**
@@ -76,6 +78,8 @@ export default function App() {
         <Route path="/proposals" element={<RequireAuth><ProposalsPage /></RequireAuth>} />
         <Route path="/social" element={<RequireAuth><SocialPage /></RequireAuth>} />
         <Route path="/benachrichtigungen" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
+        <Route path="/einstellungen" element={<RequireAuth><SettingsPage /></RequireAuth>} />
+        <Route path="/newsletter" element={<RequireAuth><NewslettersPage /></RequireAuth>} />
         <Route path="*" element={<Navigate to="/tickets" replace />} />
       </Routes>
     </Suspense>

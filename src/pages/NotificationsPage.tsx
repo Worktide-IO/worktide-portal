@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   AtSign,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 
 import { portalApi, type PortalNotification } from '@/lib/portal';
+import { useNotificationStream } from '@/lib/mercure';
 
 const TYPE_ICON: Record<string, LucideIcon> = {
   mention: AtSign,
@@ -45,6 +46,9 @@ export function NotificationsPage() {
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
   const [loading, setLoading] = useState(true);
+  // Ids already in the list, so a live frame that races a fetch (or a duplicate
+  // hub delivery) can't insert a row twice or double-count the unread total.
+  const seen = useRef<Set<string>>(new Set());
 
   function reset() {
     // `loading` starts true and is cleared in finally — no synchronous
@@ -52,6 +56,7 @@ export function NotificationsPage() {
     portalApi
       .notifications({ limit: PAGE_SIZE })
       .then((d) => {
+        d.items.forEach((n) => seen.current.add(n.id));
         setItems(d.items);
         setUnread(d.unreadCount);
         setCursor(d.nextCursor);
@@ -62,12 +67,22 @@ export function NotificationsPage() {
 
   useEffect(reset, []);
 
+  // Live push: prepend each newly-published notification at the top of the list.
+  const onLive = useCallback((n: PortalNotification) => {
+    if (seen.current.has(n.id)) return;
+    seen.current.add(n.id);
+    setItems((prev) => [n, ...prev]);
+    setUnread((c) => c + 1);
+  }, []);
+  useNotificationStream<PortalNotification>(onLive);
+
   function loadMore() {
     if (!cursor || loading) return;
     setLoading(true);
     portalApi
       .notifications({ limit: PAGE_SIZE, cursor })
       .then((d) => {
+        d.items.forEach((n) => seen.current.add(n.id));
         setItems((prev) => [...prev, ...d.items]);
         setCursor(d.nextCursor);
         setHasMore(d.nextCursor !== null);

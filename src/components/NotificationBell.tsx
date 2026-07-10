@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import {
   AtSign,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 
 import { portalApi, type PortalNotification } from '@/lib/portal';
+import { useNotificationStream } from '@/lib/mercure';
 
 const TYPE_ICON: Record<string, LucideIcon> = {
   mention: AtSign,
@@ -42,11 +43,15 @@ export function NotificationBell() {
   const [items, setItems] = useState<PortalNotification[]>([]);
   const [unread, setUnread] = useState(0);
   const [open, setOpen] = useState(false);
+  // Ids we've already shown, so a live frame that races the initial load (or a
+  // duplicate hub delivery) can't double-count the unread badge.
+  const seen = useRef<Set<string>>(new Set());
 
   function load() {
     portalApi
       .notifications({ limit: DROPDOWN_LIMIT })
       .then((d) => {
+        d.items.forEach((n) => seen.current.add(n.id));
         setItems(d.items);
         setUnread(d.unreadCount);
       })
@@ -56,6 +61,15 @@ export function NotificationBell() {
   }
 
   useEffect(load, []);
+
+  // Live push: prepend each newly-published notification and bump the badge.
+  const onLive = useCallback((n: PortalNotification) => {
+    if (seen.current.has(n.id)) return;
+    seen.current.add(n.id);
+    setItems((prev) => [n, ...prev].slice(0, DROPDOWN_LIMIT));
+    setUnread((c) => c + 1);
+  }, []);
+  useNotificationStream<PortalNotification>(onLive);
 
   function markOne(n: PortalNotification) {
     if (n.read) return;

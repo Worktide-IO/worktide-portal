@@ -1,4 +1,5 @@
 import { api, getAccessToken, refreshSession, setAccessToken } from '@/lib/api';
+import { clearMercureToken } from '@/lib/mercure';
 
 /**
  * Password login for portal contacts. The backend issues a JWT (carrying
@@ -27,6 +28,9 @@ export async function logout(): Promise<void> {
     // even if revocation fails, drop the local session
   }
   setAccessToken(null);
+  // Drop the cached hub JWT — it's scoped to this user's topic, so a
+  // login-as-different-user must not reuse it for its 30-minute lifetime.
+  clearMercureToken();
 }
 
 /**

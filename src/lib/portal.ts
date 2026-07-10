@@ -74,6 +74,29 @@ export type PortalNotificationFeed = {
   nextCursor: string | null;
 };
 
+// Notification delivery preferences (Einstellungen page). In-app/bell is always
+// on and not represented here — this governs the email channel only.
+export type NotificationFrequency = 'instant' | 'daily' | 'weekly';
+
+export type NotificationChannelPrefs = {
+  email: boolean;
+  frequency: NotificationFrequency;
+  types: Record<string, boolean>;
+  quietHours: { start: string; end: string } | null;
+};
+
+// Newsletter tree (opt-in/out per node). `subscribable` nodes carry a checkbox;
+// non-subscribable nodes are structural group headers (an ancestor of a granted
+// node that isn't itself granted to the customer).
+export type PortalNewsletterNode = {
+  id: string;
+  title: string;
+  description: string | null;
+  subscribable: boolean;
+  subscribed: boolean;
+  children: PortalNewsletterNode[];
+};
+
 export type PortalMe = {
   contact: { id: string; firstName: string; lastName: string; email: string | null };
   customer: { id: string; name: string };
@@ -445,6 +468,26 @@ export const portalApi = {
 
   markAllNotificationsRead: () =>
     api.post<{ unreadCount: number }>('/portal/notifications/read-all').then((r) => r.data),
+
+  newsletters: () =>
+    api.get<{ newsletters: PortalNewsletterNode[] }>('/portal/newsletters').then((r) => r.data.newsletters),
+
+  subscribeNewsletter: (id: string) =>
+    api.post<{ id: string; subscribed: boolean }>(`/portal/newsletters/${id}/subscription`).then((r) => r.data),
+
+  unsubscribeNewsletter: (id: string) =>
+    api.delete<{ id: string; subscribed: boolean }>(`/portal/newsletters/${id}/subscription`).then((r) => r.data),
+
+  notificationPreferences: () =>
+    api.get<NotificationChannelPrefs>('/portal/notification-preferences').then((r) => r.data),
+
+  // Partial merge server-side (PATCH) — send only the keys that changed.
+  saveNotificationPreferences: (prefs: Partial<NotificationChannelPrefs>) =>
+    api
+      .patch<NotificationChannelPrefs>('/portal/notification-preferences', prefs, {
+        headers: { 'Content-Type': 'application/json' },
+      })
+      .then((r) => r.data),
 
   tickets: () =>
     api.get<{ tickets: PortalTicket[] }>('/portal/tickets').then((r) => r.data.tickets),
