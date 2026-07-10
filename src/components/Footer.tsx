@@ -1,4 +1,5 @@
 import { useBranding } from '@/providers/brandingProvider';
+import { safeUrl } from '@/lib/safeUrl';
 
 /**
  * Legal footer with Impressum / Datenschutz links. Each link renders only when
@@ -6,7 +7,9 @@ import { useBranding } from '@/providers/brandingProvider';
  * nothing.
  */
 export function Footer({ className }: { className?: string }) {
-  const { imprintUrl, privacyUrl } = useBranding();
+  const branding = useBranding();
+  const imprintUrl = safeUrl(branding.imprintUrl);
+  const privacyUrl = safeUrl(branding.privacyUrl);
 
   if (!imprintUrl && !privacyUrl) return null;
 

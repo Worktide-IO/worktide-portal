@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronLeft, ChevronRight, Clock, Image, MessageCircle, Sparkles, X } from 'lucide-react';
 
 import { portalApi, type PortalSocialPost } from '@/lib/portal';
+import { safeUrl } from '@/lib/safeUrl';
 
 const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const MONTHS = [
@@ -221,12 +222,12 @@ function SocialCard({ post: p, onChange }: { post: PortalSocialPost; onChange: (
         </p>
       ) : null}
 
-      {p.targets.some((t) => t.permalink) ? (
+      {p.targets.some((t) => safeUrl(t.permalink)) ? (
         <div className="mt-2 text-xs">
           {p.targets
-            .filter((t) => t.permalink)
+            .filter((t) => safeUrl(t.permalink))
             .map((t) => (
-              <a key={t.channel} href={t.permalink!} target="_blank" rel="noreferrer" className="text-slate-600 underline">
+              <a key={t.channel} href={safeUrl(t.permalink)!} target="_blank" rel="noreferrer" className="text-slate-600 underline">
                 Beitrag ansehen ({t.channel})
               </a>
             ))}
