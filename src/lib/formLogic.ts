@@ -18,7 +18,12 @@
 
 import type { CalcNode, CalcRule, FormSchema, LogicCondition, LogicRule } from './portal';
 
-const INPUT_TYPES = new Set([
+// The single source of truth for "which block types collect an answer" — the
+// renderer imports this too, so progress/validation and rendering can't drift.
+// Mirrors the backend `FormSchemaNormalizer::INPUT_TYPES` 1:1 (the server
+// re-validates against the same set, and formLogic mirrors the PHP evaluator);
+// any presentation-only widget must resolve to one of these, never add a new one.
+export const INPUT_TYPES = new Set([
   'text', 'long_text', 'number', 'boolean', 'select', 'email', 'url', 'date',
   'multi_select', 'rating', 'scale', 'matrix', 'file',
 ]);
