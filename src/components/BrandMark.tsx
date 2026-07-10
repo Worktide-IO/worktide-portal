@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Boxes } from 'lucide-react';
 
 import { useBranding } from '@/providers/brandingProvider';
+import { safeUrl } from '@/lib/safeUrl';
 
 /**
  * Portal wordmark: renders the configured logo (BRAND_LOGO_URL or the backend's
@@ -11,11 +12,12 @@ import { useBranding } from '@/providers/brandingProvider';
 export function BrandMark() {
   const { logoUrl, name } = useBranding();
   const [errored, setErrored] = useState(false);
+  const safeLogo = safeUrl(logoUrl);
 
-  if (logoUrl && !errored) {
+  if (safeLogo && !errored) {
     return (
       <img
-        src={logoUrl}
+        src={safeLogo}
         alt={name}
         className="h-6 w-auto"
         onError={() => setErrored(true)}
