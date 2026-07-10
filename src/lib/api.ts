@@ -2,29 +2,22 @@ import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
 export const API_BASE = import.meta.env.VITE_API_BASE ?? '/v1';
 
-// Portal-only storage keys — deliberately distinct from the staff SPA's `wt.*`
-// so a browser can hold both sessions without collision.
-export const JWT_KEY = 'wtp.jwt';
-export const REFRESH_KEY = 'wtp.refresh';
-
-export function readToken(key: string): string | null {
-  return localStorage.getItem(key);
+// Auth (M1): the refresh token is an httpOnly cookie (sent via withCredentials),
+// never in JS-readable storage. The access token (JWT) lives in memory only; on
+// load the app silently refreshes from the cookie (ensureAuthenticated →
+// RequireAuth). Nothing sensitive is persisted — a closed tab ends the session.
+let accessToken: string | null = null;
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+export function setAccessToken(token: string | null): void {
+  accessToken = token;
 }
 
-export function writeTokens(jwt: string, refresh: string): void {
-  localStorage.setItem(JWT_KEY, jwt);
-  localStorage.setItem(REFRESH_KEY, refresh);
-}
-
-export function clearTokens(): void {
-  localStorage.removeItem(JWT_KEY);
-  localStorage.removeItem(REFRESH_KEY);
-}
-
-export const api = axios.create({ baseURL: API_BASE });
+export const api = axios.create({ baseURL: API_BASE, withCredentials: true });
 
 api.interceptors.request.use((config) => {
-  const jwt = readToken(JWT_KEY);
+  const jwt = getAccessToken();
   if (jwt && config.headers) config.headers.Authorization = `Bearer ${jwt}`;
   return config;
 });
@@ -99,17 +92,20 @@ api.interceptors.response.use((response) => {
 // race and invalidate each other. All callers await the same in-flight promise.
 let refreshInflight: Promise<boolean> | null = null;
 
-function refreshSession(): Promise<boolean> {
+export function refreshSession(): Promise<boolean> {
   if (refreshInflight) return refreshInflight;
-  const refresh = readToken(REFRESH_KEY);
-  if (!refresh) return Promise.resolve(false);
   refreshInflight = (async () => {
     try {
-      // Bare axios (not `api`) so the request interceptor doesn't attach the
-      // stale Bearer, and so a 401 here can't recurse into this interceptor.
-      const { data } = await axios.post(`${API_BASE}/auth/refresh`, { refresh_token: refresh });
-      if (!data?.token || !data?.refresh_token) return false;
-      writeTokens(data.token, data.refresh_token);
+      // Bare axios (not `api`) so the request interceptor can't attach a stale
+      // Bearer and a 401 here can't recurse into the response interceptor. The
+      // refresh token rides the httpOnly cookie → withCredentials, no body token.
+      const { data } = await axios.post(
+        `${API_BASE}/auth/refresh`,
+        {},
+        { withCredentials: true, headers: { Authorization: '' } },
+      );
+      if (!data?.token) return false;
+      setAccessToken(data.token);
       return true;
     } catch {
       return false;
@@ -133,11 +129,11 @@ api.interceptors.response.use(
     original._retried = true;
     const ok = await refreshSession();
     if (!ok) {
-      clearTokens();
+      setAccessToken(null);
       if (window.location.pathname !== '/login') window.location.assign('/login');
       return Promise.reject(error);
     }
-    // The request interceptor re-reads JWT_KEY, so the replay carries the new token.
+    // The request interceptor re-reads the in-memory token, so the replay carries it.
     return api(original);
   },
 );
