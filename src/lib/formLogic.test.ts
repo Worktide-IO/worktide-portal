@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { evaluateForm } from './formLogic';
+import { evaluateForm, INPUT_TYPES } from './formLogic';
 import type { FormBlock, FormSchema } from './portal';
 
 /**
@@ -96,5 +96,33 @@ describe('evaluateForm — calc', () => {
     });
     expect(evaluateForm(s, { qty: 5 }).activeKeys).not.toContain('bulk_note');
     expect(evaluateForm(s, { qty: 10 }).activeKeys).toContain('bulk_note');
+  });
+});
+
+describe('INPUT_TYPES — canonical contract (portal M3)', () => {
+  // The renderer imports this exact set, so any type it treats as an input must
+  // also count toward progress/validation AND be one the server recognizes.
+  it('is exactly the backend FormSchemaNormalizer::INPUT_TYPES set', () => {
+    expect([...INPUT_TYPES].sort()).toEqual(
+      [
+        'boolean', 'date', 'email', 'file', 'long_text', 'matrix', 'multi_select',
+        'number', 'rating', 'scale', 'select', 'text', 'url',
+      ].sort(),
+    );
+  });
+
+  it('excludes presentation-only aliases the server would drop', () => {
+    for (const alias of ['radio', 'checkbox', 'textarea', 'tags']) {
+      expect(INPUT_TYPES.has(alias)).toBe(false);
+    }
+  });
+
+  it('a non-canonical block type never enters activeKeys', () => {
+    const s = schema({
+      pages: [{ id: 'p1', title: null, blocks: [block('b1', 'pick', { type: 'radio' }), block('b2', 'note', { type: 'long_text' })] }],
+    });
+    const active = evaluateForm(s, {}).activeKeys;
+    expect(active).not.toContain('pick'); // radio is not a server-collected input
+    expect(active).toContain('note');
   });
 });

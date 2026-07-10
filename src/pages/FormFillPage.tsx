@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
-import { ArrowLeft, ArrowRight, CheckCircle2, Save, Star, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, Save, Star } from 'lucide-react';
 
 import { portalApi, type FormBlock, type FormSchema, type PortalFormDetail } from '@/lib/portal';
-import { evaluateForm } from '@/lib/formLogic';
+import { evaluateForm, INPUT_TYPES } from '@/lib/formLogic';
 
 const inputClass = 'mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm';
 
@@ -14,11 +14,6 @@ const PAGE_STATE_CLASSES: Record<PageState, string> = {
   'in Arbeit': 'bg-amber-100 text-amber-800',
   vollständig: 'bg-green-100 text-green-700',
 };
-
-const INPUT_TYPES = new Set([
-  'text', 'long_text', 'email', 'url', 'number', 'date', 'boolean', 'select',
-  'multi_select', 'rating', 'scale', 'matrix', 'file', 'radio', 'checkbox', 'textarea', 'tags',
-]);
 
 function isFilled(v: unknown): boolean {
   if (v === undefined || v === null || v === '') return false;
@@ -314,15 +309,6 @@ function Field({ block, value, onChange }: { block: FormBlock; value: unknown; o
   );
   const str = typeof value === 'string' ? value : typeof value === 'number' ? String(value) : '';
 
-  if (block.type === 'tags') {
-    return (
-      <div>
-        {label}
-        <TagsInput value={str} placeholder={block.placeholder} onChange={onChange} />
-      </div>
-    );
-  }
-
   if (block.type === 'multi_select') {
     const selected = Array.isArray(value) ? (value as string[]) : [];
     const toggle = (o: string) =>
@@ -429,7 +415,7 @@ function Field({ block, value, onChange }: { block: FormBlock; value: unknown; o
     );
   }
 
-  if (block.type === 'long_text' || block.type === 'textarea') {
+  if (block.type === 'long_text') {
     return (
       <label className="block">
         {label}
@@ -454,23 +440,7 @@ function Field({ block, value, onChange }: { block: FormBlock; value: unknown; o
     );
   }
 
-  if (block.type === 'radio') {
-    return (
-      <div>
-        {label}
-        <div className="mt-1 flex flex-wrap gap-4">
-          {block.options.map((o) => (
-            <label key={o} className="flex items-center gap-1.5 text-sm">
-              <input type="radio" name={block.id} value={o} checked={str === o} required={block.required} onChange={() => onChange(o)} />
-              {o}
-            </label>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (block.type === 'boolean' || block.type === 'checkbox') {
+  if (block.type === 'boolean') {
     return (
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} />
@@ -500,44 +470,3 @@ function Field({ block, value, onChange }: { block: FormBlock; value: unknown; o
 }
 
 /** Comma-separated tags stored as a single string (kept simple for the API). */
-function TagsInput({ value, placeholder, onChange }: { value: string; placeholder: string | null; onChange: (v: string) => void }) {
-  const [draft, setDraft] = useState('');
-  const tags = value ? value.split(',').map((t) => t.trim()).filter(Boolean) : [];
-
-  function commit(raw: string) {
-    const t = raw.trim().replace(/,$/, '');
-    if (t === '') return;
-    onChange([...new Set([...tags, t])].join(', '));
-    setDraft('');
-  }
-
-  function remove(tag: string) {
-    onChange(tags.filter((t) => t !== tag).join(', '));
-  }
-
-  return (
-    <div className={`${inputClass} flex flex-wrap items-center gap-1.5`}>
-      {tags.map((t) => (
-        <span key={t} className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-700">
-          {t}
-          <button type="button" onClick={() => remove(t)} className="text-slate-400 hover:text-slate-700">
-            <X className="size-3" />
-          </button>
-        </span>
-      ))}
-      <input
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ',') {
-            e.preventDefault();
-            commit(draft);
-          }
-        }}
-        onBlur={() => commit(draft)}
-        placeholder={tags.length === 0 ? (placeholder ?? 'Tippen + Enter') : ''}
-        className="min-w-24 flex-1 border-0 p-0 text-sm outline-none focus:ring-0"
-      />
-    </div>
-  );
-}
