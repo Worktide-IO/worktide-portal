@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AlertTriangle, ExternalLink, Server, Wrench } from 'lucide-react';
 
 import { portalApi, type PortalSystem, type PortalSystemIncident } from '@/lib/portal';
+import { safeUrl } from '@/lib/safeUrl';
 
 // Internal type slug → display label.
 const TYPE_LABELS: Record<string, string> = {
@@ -167,15 +168,15 @@ export function SystemsPage() {
                 <p className="mt-4 text-xs text-slate-400">Keine Verfügbarkeitsdaten.</p>
               )}
 
-              {s.url ? (
+              {safeUrl(s.url) ? (
                 <a
-                  href={s.url}
+                  href={safeUrl(s.url)!}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-3 inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
                 >
                   <ExternalLink className="size-3.5" />
-                  {s.url.replace(/^https?:\/\//, '')}
+                  {s.url?.replace(/^https?:\/\//, '')}
                 </a>
               ) : null}
             </div>
