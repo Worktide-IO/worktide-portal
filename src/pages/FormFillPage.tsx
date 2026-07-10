@@ -58,6 +58,18 @@ function toSchema(form: PortalFormDetail): FormSchema {
   return { version: 2, pages, logic: [], calc: [] };
 }
 
+// Trails `value` by `ms`, collapsing bursts. Used to throttle full-form
+// re-evaluation: inputs stay bound to the live `values` (so typing is instant),
+// while branching/calc/progress recompute at most once per idle window.
+function useDebounced<T>(value: T, ms: number): T {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return debounced;
+}
+
 function pageState(blocks: FormBlock[], activeKeys: Set<string>, values: Record<string, unknown>): PageState {
   const active = blocks.filter((b) => b.key && activeKeys.has(b.key));
   if (active.length === 0) return 'vollständig';
@@ -91,11 +103,14 @@ export function FormFillPage() {
 
   const schema = useMemo(() => (form ? toSchema(form) : null), [form]);
 
-  // Re-run branching/calc on every answer change. The server re-evaluates the
-  // same rules on submit, so this is purely for live UX.
+  // Re-run branching/calc off a debounced snapshot, not every keystroke — the
+  // engine walks the whole form, and this feeds only live UX (visible blocks,
+  // page order, calc totals, progress). Inputs bind to the live `values`, and
+  // submit sends the live `values`, so the delay is invisible to correctness.
+  const debouncedValues = useDebounced(values, 150);
   const evaluation = useMemo(
-    () => (schema ? evaluateForm(schema, values) : null),
-    [schema, values],
+    () => (schema ? evaluateForm(schema, debouncedValues) : null),
+    [schema, debouncedValues],
   );
 
   const orderedPages = useMemo(() => {
@@ -114,8 +129,10 @@ export function FormFillPage() {
   const progress = useMemo(() => {
     const keys = evaluation?.activeKeys ?? [];
     if (keys.length === 0) return 0;
-    return Math.round((keys.filter((k) => isFilled(values[k])).length / keys.length) * 100);
-  }, [evaluation, values]);
+    // Count fills from the same debounced snapshot the activeKeys came from, so
+    // the ratio is always internally consistent.
+    return Math.round((keys.filter((k) => isFilled(debouncedValues[k])).length / keys.length) * 100);
+  }, [evaluation, debouncedValues]);
 
   function set(key: string, value: unknown) {
     setValues((v) => ({ ...v, [key]: value }));
@@ -199,7 +216,7 @@ export function FormFillPage() {
         {/* Page navigation (jump-aware) with per-page status. */}
         <nav className="space-y-1">
           {orderedPages.map((page, i) => {
-            const st = pageState(page.blocks, activeKeys, values);
+            const st = pageState(page.blocks, activeKeys, debouncedValues);
             const name = page.title ?? `Abschnitt ${i + 1}`;
             return (
               <button
