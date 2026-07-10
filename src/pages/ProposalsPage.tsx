@@ -146,12 +146,20 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const decided = p.status === 'accepted' || p.status === 'rejected';
 
-  async function run(fn: () => Promise<PortalProposal>) {
+  // Resolves true iff the action succeeded, so form callers only clear/close on
+  // success. A failure surfaces an inline message instead of silently vanishing.
+  async function run(fn: () => Promise<PortalProposal>): Promise<boolean> {
     setBusy(true);
+    setError(null);
     try {
       onChange(await fn());
+      return true;
+    } catch {
+      setError('Aktion fehlgeschlagen. Bitte erneut versuchen.');
+      return false;
     } finally {
       setBusy(false);
     }
@@ -257,12 +265,15 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
             </button>
           </div>
 
+          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
           {feedbackOpen ? (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!feedback.trim()) return;
-                run(() => portalApi.sendProposalFeedback(p.id, feedback.trim())).then(() => {
+                run(() => portalApi.sendProposalFeedback(p.id, feedback.trim())).then((ok) => {
+                  if (!ok) return;
                   setFeedback('');
                   setFeedbackOpen(false);
                 });

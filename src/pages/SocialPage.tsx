@@ -179,12 +179,20 @@ function SocialCard({ post: p, onChange }: { post: PortalSocialPost; onChange: (
   const [changeOpen, setChangeOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const when = fmt(p.scheduledAt) ?? fmt(p.publishedAt);
 
-  async function run(fn: () => Promise<PortalSocialPost>) {
+  // Resolves true iff the action succeeded, so form callers only clear/close on
+  // success. A failure surfaces an inline message instead of silently vanishing.
+  async function run(fn: () => Promise<PortalSocialPost>): Promise<boolean> {
     setBusy(true);
+    setError(null);
     try {
       onChange(await fn());
+      return true;
+    } catch {
+      setError('Aktion fehlgeschlagen. Bitte erneut versuchen.');
+      return false;
     } finally {
       setBusy(false);
     }
@@ -263,12 +271,15 @@ function SocialCard({ post: p, onChange }: { post: PortalSocialPost; onChange: (
             </button>
           </div>
 
+          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+
           {changeOpen ? (
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 if (!message.trim()) return;
-                run(() => portalApi.requestSocialChange(p.id, message.trim())).then(() => {
+                run(() => portalApi.requestSocialChange(p.id, message.trim())).then((ok) => {
+                  if (!ok) return;
                   setMessage('');
                   setChangeOpen(false);
                 });
