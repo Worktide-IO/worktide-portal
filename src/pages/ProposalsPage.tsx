@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Check, MessageCircle, Sparkles, X } from 'lucide-react';
 
 import { portalApi, type PortalProposal } from '@/lib/portal';
+import { safeUrl } from '@/lib/safeUrl';
 
 const TABS: { key: string; label: string }[] = [
   { key: 'new', label: 'Neu' },
@@ -109,13 +110,14 @@ export function ProposalsPage() {
 // never shows a broken-image icon.
 function MockupImage({ url, label }: { url: string; label: string }) {
   const [broken, setBroken] = useState(false);
-  if (broken) return null;
+  const safe = safeUrl(url);
+  if (broken || !safe) return null;
   return (
     <figure className="min-w-0 space-y-1">
       <figcaption className="text-xs font-medium uppercase tracking-wide text-slate-400">{label}</figcaption>
-      <a href={url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg border border-slate-200">
+      <a href={safe} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg border border-slate-200">
         <img
-          src={url}
+          src={safe}
           alt={label}
           loading="lazy"
           onError={() => setBroken(true)}
