@@ -125,3 +125,51 @@ describe('api 401 refresh interceptor', () => {
     expect(refreshCalls).toBe(1); // exactly one refresh attempt, no infinite loop
   });
 });
+
+describe('api JSON-salvage interceptor (M2)', () => {
+  // Serve a raw body string with a chosen content-type. axios leaves an
+  // unparseable body as a string, so the interceptor's salvage path runs.
+  function serve(body: string, contentType = 'application/json') {
+    api.defaults.adapter = (config: any) =>
+      Promise.resolve({ data: body, status: 200, statusText: '', headers: { 'content-type': contentType }, config });
+  }
+
+  it('returns a clean JSON body unchanged', async () => {
+    serve('{"a":1,"b":"x"}');
+    expect((await api.get('/x')).data).toEqual({ a: 1, b: 'x' });
+  });
+
+  it('keeps a valid payload whose own string value contains "<!--" (no truncation)', async () => {
+    // A Symfony profiler comment is appended AFTER the JSON; the field value
+    // itself also contains "<!--" — the old indexOf('<!--') cut truncated here.
+    serve('{"note":"before <!-- keep --> after","n":2}\n<!-- Symfony profiler -->');
+    expect((await api.get('/x')).data).toEqual({ note: 'before <!-- keep --> after', n: 2 });
+  });
+
+  it('salvages when a PHP notice with no "<!--" is appended', async () => {
+    serve('{"ok":true}<br />\n<b>Warning</b>: foo in /app on line 3');
+    expect((await api.get('/x')).data).toEqual({ ok: true });
+  });
+
+  it('is not fooled by braces/brackets inside string values', async () => {
+    serve('{"tpl":"a } b ] c","arr":[1,2]}<!-- x -->');
+    expect((await api.get('/x')).data).toEqual({ tpl: 'a } b ] c', arr: [1, 2] });
+  });
+
+  it('salvages a top-level array', async () => {
+    serve('[{"id":1},{"id":2}]<!-- trailing -->');
+    expect((await api.get('/x')).data).toEqual([{ id: 1 }, { id: 2 }]);
+  });
+
+  it('leaves a genuine non-JSON (text/html) body untouched', async () => {
+    serve('<html><body>hi</body></html>', 'text/html; charset=utf-8');
+    const res = await api.get('/x');
+    expect(typeof res.data).toBe('string');
+    expect(res.data).toContain('<html>');
+  });
+
+  it('rejects a JSON-typed body that has no leading JSON value', async () => {
+    serve('not json at all <!-- x -->');
+    await expect(api.get('/x')).rejects.toThrow('Malformed');
+  });
+});

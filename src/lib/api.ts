@@ -29,23 +29,67 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Resilience: a JSON endpoint should never hand a component a raw string. In
-// dev the Symfony profiler can append an error page after the JSON (a corrupt
-// var/cache Deprecations.log → "headers already sent"), so axios fails to parse
-// and returns the raw body. Salvage the leading JSON object (it ends exactly
-// where the appended "<!-- … -->" / HTML begins); reject if unsalvageable — so
-// callers hit their catch/error state instead of crashing on `data.foo`.
-api.interceptors.response.use((response) => {
-  if (typeof response.data === 'string' && response.data.length > 0) {
-    const cut = response.data.indexOf('<!--');
-    const jsonPart = (cut >= 0 ? response.data.slice(0, cut) : response.data).trim();
-    if (jsonPart === '') return response;
-    try {
-      response.data = JSON.parse(jsonPart);
-    } catch {
-      return Promise.reject(new Error('Malformed (non-JSON) response'));
+/**
+ * Recover the leading JSON value from a string that has trailing garbage, by
+ * string-aware bracket matching. Returns undefined if the text doesn't start
+ * with a JSON object/array or the matched span won't parse. Crucially, brackets
+ * and "<!--" *inside* string literals don't fool it — so a valid payload isn't
+ * truncated at a "<!--" that merely appears in one of its own field values.
+ */
+function extractLeadingJson(text: string): unknown {
+  const s = text.replace(/^\s+/, '');
+  const open = s[0];
+  if (open !== '{' && open !== '[') return undefined;
+  const close = open === '{' ? '}' : ']';
+  let depth = 0;
+  let inStr = false;
+  let escaped = false;
+  for (let i = 0; i < s.length; i += 1) {
+    const ch = s[i];
+    if (inStr) {
+      if (escaped) escaped = false;
+      else if (ch === '\\') escaped = true;
+      else if (ch === '"') inStr = false;
+      continue;
+    }
+    if (ch === '"') inStr = true;
+    else if (ch === open) depth += 1;
+    else if (ch === close && (depth -= 1) === 0) {
+      try {
+        return JSON.parse(s.slice(0, i + 1));
+      } catch {
+        return undefined;
+      }
     }
   }
+  return undefined; // never balanced
+}
+
+// Resilience: a JSON endpoint should never hand a component a raw string. In dev
+// the Symfony profiler can append an error page AFTER the JSON body (a corrupt
+// var/cache Deprecations.log → "headers already sent"), so axios can't parse the
+// whole body and leaves `response.data` a string. We only intervene for
+// responses the server labelled JSON, and recover via balanced bracket matching
+// — NOT by cutting at "<!--" (which truncated valid payloads containing "<!--"
+// and missed notices like "<br /><b>Warning</b>" that carry no "<!--"). Reject
+// if unsalvageable, so callers hit their error state instead of crashing on
+// `data.foo`.
+api.interceptors.response.use((response) => {
+  if (typeof response.data !== 'string' || response.data.length === 0) return response;
+  const h = response.headers as { get?: (k: string) => unknown; [k: string]: unknown } | undefined;
+  const contentType = String((typeof h?.get === 'function' ? h.get('content-type') : h?.['content-type']) ?? '');
+  if (!contentType.includes('json')) return response; // leave genuine text/html etc. alone
+  // Fast path: the whole body is valid JSON (axios left it a string for some
+  // unrelated reason) — parse and return, no salvage heuristics needed.
+  try {
+    response.data = JSON.parse(response.data);
+    return response;
+  } catch {
+    // fall through to salvage
+  }
+  const salvaged = extractLeadingJson(response.data);
+  if (salvaged === undefined) return Promise.reject(new Error('Malformed (non-JSON) response'));
+  response.data = salvaged;
   return response;
 });
 
