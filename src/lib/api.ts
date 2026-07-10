@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
 
 export const API_BASE = import.meta.env.VITE_API_BASE ?? '/v1';
 
@@ -49,6 +49,51 @@ api.interceptors.response.use((response) => {
   return response;
 });
 
-// TODO(phase-1): on 401, try POST /auth/refresh with the refresh token and
-// replay the request once (mirror worktide-web/src/providers/authProvider.ts),
-// then fall back to logout. Kept minimal here so the auth flow is easy to read.
+// Single-flight refresh: concurrent 401s (a dashboard fires several requests at
+// once) must trigger exactly one POST /auth/refresh, not one per request — the
+// backend rotates the refresh token on every use, so parallel refreshes would
+// race and invalidate each other. All callers await the same in-flight promise.
+let refreshInflight: Promise<boolean> | null = null;
+
+function refreshSession(): Promise<boolean> {
+  if (refreshInflight) return refreshInflight;
+  const refresh = readToken(REFRESH_KEY);
+  if (!refresh) return Promise.resolve(false);
+  refreshInflight = (async () => {
+    try {
+      // Bare axios (not `api`) so the request interceptor doesn't attach the
+      // stale Bearer, and so a 401 here can't recurse into this interceptor.
+      const { data } = await axios.post(`${API_BASE}/auth/refresh`, { refresh_token: refresh });
+      if (!data?.token || !data?.refresh_token) return false;
+      writeTokens(data.token, data.refresh_token);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      refreshInflight = null;
+    }
+  })();
+  return refreshInflight;
+}
+
+// On 401: refresh once and replay the original request. If refresh fails (no
+// token, revoked, expired) clear the session and bounce to /login — otherwise a
+// stale JWT surfaces as a misleading "not found" in the calling component.
+api.interceptors.response.use(
+  (response) => response,
+  async (error: AxiosError) => {
+    const original = error.config as (InternalAxiosRequestConfig & { _retried?: boolean }) | undefined;
+    if (error.response?.status !== 401 || !original || original._retried) {
+      return Promise.reject(error);
+    }
+    original._retried = true;
+    const ok = await refreshSession();
+    if (!ok) {
+      clearTokens();
+      if (window.location.pathname !== '/login') window.location.assign('/login');
+      return Promise.reject(error);
+    }
+    // The request interceptor re-reads JWT_KEY, so the replay carries the new token.
+    return api(original);
+  },
+);
