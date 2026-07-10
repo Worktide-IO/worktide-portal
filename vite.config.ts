@@ -33,6 +33,19 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      // Same-origin proxy to the Mercure hub for the live notification stream.
+      // The shared hub's CORS allowlist doesn't include the portal's dev origin
+      // (http://…:5174), so a direct EventSource is blocked by preflight.
+      // Proxying keeps the SSE connection same-origin in dev; prod points
+      // VITE_MERCURE_HUB_URL straight at the hub (whose CORS lists the real
+      // portal domain). `ws:false` — this is SSE (a streamed HTTP response),
+      // not a WebSocket.
+      '/.well-known/mercure': {
+        target: 'https://worktide-mercure.wappler.systems',
+        changeOrigin: true,
+        secure: false,
+        ws: false,
+      },
     },
   },
 });
