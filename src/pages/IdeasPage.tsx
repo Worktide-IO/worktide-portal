@@ -58,6 +58,8 @@ export function IdeasPage() {
   const [busy, setBusy] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [noteBusy, setNoteBusy] = useState(false);
+  // Ideas whose vote is in flight — one per id so distinct ideas stay independent.
+  const [votingIds, setVotingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     portalApi.goals().then(setGoals).catch(() => setError('Ziele konnten nicht geladen werden.'));
@@ -79,6 +81,11 @@ export function IdeasPage() {
   }
 
   async function toggleVote(idea: PortalIdea) {
+    // Guard against a double-fire: a second click before the first request
+    // resolves would send the opposite action against a stale snapshot and
+    // race the reconciliation. Ignore until this idea's vote settles.
+    if (votingIds.has(idea.id)) return;
+    setVotingIds((s) => new Set(s).add(idea.id));
     // Optimistic: flip locally, reconcile with the server response.
     const optimistic = { ...idea, hasVoted: !idea.hasVoted, voteCount: idea.voteCount + (idea.hasVoted ? -1 : 1) };
     setIdeas((prev) => sortIdeas((prev ?? []).map((i) => (i.id === idea.id ? optimistic : i))));
@@ -87,6 +94,12 @@ export function IdeasPage() {
       setIdeas((prev) => sortIdeas((prev ?? []).map((i) => (i.id === idea.id ? { ...i, ...res } : i))));
     } catch {
       setIdeas((prev) => sortIdeas((prev ?? []).map((i) => (i.id === idea.id ? idea : i))));
+    } finally {
+      setVotingIds((s) => {
+        const n = new Set(s);
+        n.delete(idea.id);
+        return n;
+      });
     }
   }
 
@@ -161,8 +174,9 @@ export function IdeasPage() {
               <button
                 type="button"
                 onClick={() => toggleVote(idea)}
+                disabled={votingIds.has(idea.id)}
                 aria-pressed={idea.hasVoted}
-                className={`flex w-12 shrink-0 flex-col items-center rounded-md border px-1 py-1.5 text-sm transition ${
+                className={`flex w-12 shrink-0 flex-col items-center rounded-md border px-1 py-1.5 text-sm transition disabled:opacity-50 ${
                   idea.hasVoted
                     ? 'border-[var(--brand-primary)] bg-[var(--brand-primary)] text-white'
                     : 'border-slate-200 text-slate-600 hover:border-slate-400'
