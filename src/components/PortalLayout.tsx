@@ -14,7 +14,7 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router';
 
 import { logout } from '@/providers/authProvider';
-import { portalApi, type PortalMe } from '@/lib/portal';
+import { portalApi, languageLabel, type PortalMe } from '@/lib/portal';
 import { NotificationBell } from '@/components/NotificationBell';
 import { BrandMark } from '@/components/BrandMark';
 import { Footer } from '@/components/Footer';
@@ -71,6 +71,26 @@ export function PortalLayout({ children }: { children: ReactNode }) {
                 <span className="mx-2 text-slate-300">·</span>
                 {me.contact?.firstName} {me.contact?.lastName}
               </span>
+            ) : null}
+            {(me?.supportedLanguages?.length ?? 0) > 1 && me ? (
+              <select
+                aria-label="Sprache"
+                value={me.preferredLanguage ?? ''}
+                onChange={(e) => {
+                  const next = e.target.value === '' ? null : e.target.value;
+                  // Optimistic; reconcile with the server's echo.
+                  setMe((prev) => (prev ? { ...prev, preferredLanguage: next } : prev));
+                  portalApi.setLanguage(next).then(setMe).catch(() => undefined);
+                }}
+                className="cursor-pointer rounded-md border border-slate-200 bg-white px-2 py-1 text-sm text-slate-600 hover:text-slate-900"
+              >
+                <option value="">Automatisch</option>
+                {me.supportedLanguages.map((code) => (
+                  <option key={code} value={code}>
+                    {languageLabel(code)}
+                  </option>
+                ))}
+              </select>
             ) : null}
             <NotificationBell />
             <button
