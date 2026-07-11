@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Mail } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { portalApi, type PortalNewsletterNode } from '@/lib/portal';
 
@@ -10,6 +11,7 @@ import { portalApi, type PortalNewsletterNode } from '@/lib/portal';
  * headers that only give the tree its shape.
  */
 export function NewslettersPage() {
+  const { t } = useTranslation();
   const [tree, setTree] = useState<PortalNewsletterNode[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<Record<string, boolean>>({});
@@ -46,16 +48,16 @@ export function NewslettersPage() {
   return (
     <div className="mx-auto w-full max-w-2xl">
       <div className="mb-4">
-        <h1 className="text-xl font-semibold text-slate-900">Newsletter</h1>
-        <p className="text-sm text-slate-500">Wählen Sie, worüber wir Sie auf dem Laufenden halten dürfen.</p>
+        <h1 className="text-xl font-semibold text-slate-900">{t('newsletters.title')}</h1>
+        <p className="text-sm text-slate-500">{t('newsletters.subtitle')}</p>
       </div>
 
       {loading ? (
-        <p className="text-sm text-slate-500">Lädt…</p>
+        <p className="text-sm text-slate-500">{t('app.loading')}</p>
       ) : empty ? (
         <div className="rounded-lg border border-dashed border-slate-200 py-16 text-center text-sm text-slate-500">
           <Mail className="mx-auto mb-2 size-6 opacity-40" />
-          Zurzeit sind keine Newsletter für Sie freigeschaltet.
+          {t('newsletters.empty')}
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">

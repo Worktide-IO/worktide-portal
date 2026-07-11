@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { ArrowLeft, Download, Paperclip } from 'lucide-react';
 
@@ -31,6 +32,7 @@ function formatBytes(n: number | null): string {
 }
 
 export function TicketDetailPage() {
+  const { t } = useTranslation();
   const { id = '' } = useParams();
   const [ticket, setTicket] = useState<PortalTicketDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +46,7 @@ export function TicketDetailPage() {
     portalApi
       .ticket(id)
       .then(setTicket)
-      .catch(() => setError('Ticket nicht gefunden oder kein Zugriff.'));
+      .catch(() => setError(t('ticket_detail.not_found')));
   }
   useEffect(load, [id]);
 
@@ -59,7 +61,7 @@ export function TicketDetailPage() {
       load();
     } catch (err) {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setUploadError(detail ?? 'Anhang konnte nicht hochgeladen werden.');
+      setUploadError(detail ?? t('ticket_detail.upload_error'));
     } finally {
       setUploading(false);
     }
@@ -91,12 +93,12 @@ export function TicketDetailPage() {
   }
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (!ticket) return <p className="text-sm text-slate-500">Lädt…</p>;
+  if (!ticket) return <p className="text-sm text-slate-500">{t('app.loading')}</p>;
 
   return (
     <div className="space-y-5">
       <Link to="/tickets" className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
-        <ArrowLeft className="size-4" /> Zurück
+        <ArrowLeft className="size-4" /> {t('action.back')}
       </Link>
 
       <div className="rounded-lg border border-slate-200 bg-white p-5">
@@ -112,9 +114,9 @@ export function TicketDetailPage() {
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
           {ticket.projectName ? <span>{ticket.projectName}</span> : null}
-          <SlaLeg label="Reaktion" leg={ticket.sla.response} />
-          <SlaLeg label="Lösung" leg={ticket.sla.resolution} />
-          {ticket.sla.paused ? <span className="text-amber-600">· wartet auf Sie</span> : null}
+          <SlaLeg label={t('ticket_detail.sla_response')} leg={ticket.sla.response} />
+          <SlaLeg label={t('ticket_detail.sla_resolution')} leg={ticket.sla.resolution} />
+          {ticket.sla.paused ? <span className="text-amber-600">· {t('ticket_detail.waiting_for_you')}</span> : null}
         </div>
         {ticket.description ? <p className="mt-3 whitespace-pre-wrap text-sm text-slate-700">{ticket.description}</p> : null}
       </div>
@@ -122,7 +124,7 @@ export function TicketDetailPage() {
       <section className="space-y-2">
         <div className="flex items-center justify-between">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-            <Paperclip className="size-4 text-slate-400" /> Anhänge
+            <Paperclip className="size-4 text-slate-400" /> {t('ticket_detail.attachments')}
           </h2>
           <button
             type="button"
@@ -130,7 +132,7 @@ export function TicketDetailPage() {
             disabled={uploading}
             className="inline-flex cursor-pointer items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 disabled:opacity-50"
           >
-            <Paperclip className="size-3.5" /> {uploading ? 'Lädt hoch…' : 'Datei anhängen'}
+            <Paperclip className="size-3.5" /> {uploading ? t('ticket_detail.uploading') : t('ticket_detail.attach_file')}
           </button>
           <input
             ref={fileInputRef}
@@ -145,7 +147,7 @@ export function TicketDetailPage() {
         </div>
         {uploadError ? <p className="text-sm text-red-600">{uploadError}</p> : null}
         {ticket.attachments.length === 0 ? (
-          <p className="text-sm text-slate-500">Keine Anhänge.</p>
+          <p className="text-sm text-slate-500">{t('ticket_detail.no_attachments')}</p>
         ) : (
           <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
             {ticket.attachments.map((a) => (
@@ -168,8 +170,8 @@ export function TicketDetailPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-slate-700">Verlauf</h2>
-        {ticket.comments.length === 0 ? <p className="text-sm text-slate-500">Noch keine Kommentare.</p> : null}
+        <h2 className="text-sm font-semibold text-slate-700">{t('ticket_detail.history')}</h2>
+        {ticket.comments.length === 0 ? <p className="text-sm text-slate-500">{t('ticket_detail.no_comments')}</p> : null}
         {ticket.comments.map((c) => (
           <div key={c.id} className="rounded-lg border border-slate-200 bg-white p-3">
             <div className="flex items-center justify-between text-xs text-slate-500">
@@ -186,7 +188,7 @@ export function TicketDetailPage() {
           value={reply}
           onChange={(e) => setReply(e.target.value)}
           rows={3}
-          placeholder="Antwort schreiben…"
+          placeholder={t('ticket_detail.reply_placeholder')}
           className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
         />
         <button
@@ -194,7 +196,7 @@ export function TicketDetailPage() {
           disabled={sending || !reply.trim()}
           className="cursor-pointer rounded bg-[var(--brand-primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
-          {sending ? 'Senden…' : 'Antwort senden'}
+          {sending ? t('ticket_detail.sending') : t('ticket_detail.send_reply')}
         </button>
       </form>
     </div>

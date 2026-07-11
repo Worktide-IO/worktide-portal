@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -7,6 +8,7 @@ import remarkGfm from 'remark-gfm';
 import { portalApi, type PortalDocumentDetail } from '@/lib/portal';
 
 export function DocumentDetailPage() {
+  const { t } = useTranslation();
   const { id = '' } = useParams();
   const [doc, setDoc] = useState<PortalDocumentDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -15,16 +17,16 @@ export function DocumentDetailPage() {
     portalApi
       .document(id)
       .then(setDoc)
-      .catch(() => setError('Dokument nicht gefunden oder kein Zugriff.'));
-  }, [id]);
+      .catch(() => setError(t('document_detail.not_found')));
+  }, [id, t]);
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (!doc) return <p className="text-sm text-slate-500">Lädt…</p>;
+  if (!doc) return <p className="text-sm text-slate-500">{t('app.loading')}</p>;
 
   return (
     <div className="space-y-5">
       <Link to="/documents" className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
-        <ArrowLeft className="size-4" /> Zurück
+        <ArrowLeft className="size-4" /> {t('action.back')}
       </Link>
 
       <div className="rounded-lg border border-slate-200 bg-white p-6">
@@ -42,7 +44,7 @@ export function DocumentDetailPage() {
             <ReactMarkdown remarkPlugins={[remarkGfm]}>{doc.body}</ReactMarkdown>
           </div>
         ) : (
-          <p className="mt-4 text-sm text-slate-400">Kein Inhalt.</p>
+          <p className="mt-4 text-sm text-slate-400">{t('document_detail.no_content')}</p>
         )}
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ArrowRight, CheckCircle2, Save, Star } from 'lucide-react';
 
 import { portalApi, type FormBlock, type FormSchema, type PortalFormDetail } from '@/lib/portal';
@@ -80,6 +81,7 @@ function pageState(blocks: FormBlock[], activeKeys: Set<string>, values: Record<
 }
 
 export function FormFillPage() {
+  const { t } = useTranslation();
   const { id = '' } = useParams();
   const [form, setForm] = useState<PortalFormDetail | null>(null);
   const [values, setValues] = useState<Record<string, unknown>>({});
@@ -96,10 +98,10 @@ export function FormFillPage() {
       .then((f) => {
         setForm(f);
         if (f.draft) setValues(f.draft);
-        if (f.draftSavedAt) setSavedNote('Entwurf gespeichert');
+        if (f.draftSavedAt) setSavedNote(t('form_fill.draft_saved'));
       })
-      .catch(() => setError('Fragebogen nicht gefunden oder kein Zugriff.'));
-  }, [id]);
+      .catch(() => setError(t('form_fill.not_found')));
+  }, [id, t]);
 
   const schema = useMemo(() => (form ? toSchema(form) : null), [form]);
 
@@ -143,7 +145,7 @@ export function FormFillPage() {
     setSaving(true);
     try {
       await portalApi.saveFormDraft(id, values);
-      setSavedNote('Entwurf gespeichert');
+      setSavedNote(t('form_fill.draft_saved'));
     } finally {
       setSaving(false);
     }
@@ -155,31 +157,31 @@ export function FormFillPage() {
     setError(null);
     try {
       const res = await portalApi.submitForm(id, values);
-      setDone(res.message ?? 'Vielen Dank für Ihre Angaben.');
+      setDone(res.message ?? t('form_fill.thank_you'));
     } catch (err) {
       const data = (err as { response?: { data?: { errors?: Record<string, string> } } })?.response?.data;
       setError(
         data?.errors
-          ? 'Bitte prüfen Sie Ihre Angaben: ' + Object.values(data.errors).join(' · ')
-          : 'Fragebogen konnte nicht gesendet werden.',
+          ? t('form_fill.check_inputs', { details: Object.values(data.errors).join(' · ') })
+          : t('form_fill.submit_error'),
       );
       setBusy(false);
     }
   }
 
   if (error && !form) return <p className="text-sm text-red-600">{error}</p>;
-  if (!form || !schema || !evaluation) return <p className="text-sm text-slate-500">Lädt…</p>;
+  if (!form || !schema || !evaluation) return <p className="text-sm text-slate-500">{t('app.loading')}</p>;
 
   if (done) {
     return (
       <div className="space-y-4">
         <Link to="/forms" className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
-          <ArrowLeft className="size-4" /> Zurück
+          <ArrowLeft className="size-4" /> {t('action.back')}
         </Link>
         <div className="flex items-start gap-3 rounded-lg border border-green-200 bg-green-50 p-5">
           <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-green-600" />
           <div>
-            <div className="font-medium text-green-800">Gesendet</div>
+            <div className="font-medium text-green-800">{t('form_fill.sent')}</div>
             <p className="text-sm text-green-700">{done}</p>
           </div>
         </div>
@@ -195,7 +197,7 @@ export function FormFillPage() {
   return (
     <div className="space-y-5">
       <Link to="/forms" className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
-        <ArrowLeft className="size-4" /> Zurück
+        <ArrowLeft className="size-4" /> {t('action.back')}
       </Link>
 
       <div>
@@ -207,7 +209,7 @@ export function FormFillPage() {
           </div>
           <span className="text-xs text-slate-500">
             {savedNote ? `${savedNote} · ` : ''}
-            {progress} % ausgefüllt
+            {t('form_fill.percent_filled', { percent: progress })}
           </span>
         </div>
       </div>
@@ -217,7 +219,7 @@ export function FormFillPage() {
         <nav className="space-y-1">
           {orderedPages.map((page, i) => {
             const st = pageState(page.blocks, activeKeys, debouncedValues);
-            const name = page.title ?? `Abschnitt ${i + 1}`;
+            const name = page.title ?? t('form_fill.section', { n: i + 1 });
             return (
               <button
                 key={page.id}
@@ -269,7 +271,7 @@ export function FormFillPage() {
                 onClick={() => setStep((s) => Math.min(orderedPages.length - 1, s + 1))}
                 className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white"
               >
-                Weiter <ArrowRight className="size-4" />
+                {t('action.next')} <ArrowRight className="size-4" />
               </button>
             ) : (
               <button
@@ -277,7 +279,7 @@ export function FormFillPage() {
                 disabled={busy}
                 className="rounded bg-[var(--brand-primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
               >
-                {busy ? 'Senden…' : 'Absenden'}
+                {busy ? t('form_fill.sending') : t('form_fill.submit')}
               </button>
             )}
 
@@ -287,7 +289,7 @@ export function FormFillPage() {
               disabled={saving}
               className="inline-flex items-center gap-1.5 rounded border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
             >
-              <Save className="size-4" /> {saving ? 'Speichern…' : 'Entwurf speichern'}
+              <Save className="size-4" /> {saving ? t('form_fill.saving') : t('form_fill.save_draft')}
             </button>
           </div>
         </form>
@@ -302,9 +304,10 @@ function StaticBlock({ block }: { block: FormBlock }) {
 }
 
 function CalcSummary({ calc }: { calc: Record<string, number> }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-md border border-slate-200 bg-slate-50 p-3">
-      <div className="text-xs font-medium uppercase tracking-wide text-slate-500">Berechnet</div>
+      <div className="text-xs font-medium uppercase tracking-wide text-slate-500">{t('form_fill.calculated')}</div>
       <dl className="mt-1 space-y-0.5">
         {Object.entries(calc).map(([k, v]) => (
           <div key={k} className="flex justify-between text-sm">
@@ -318,6 +321,7 @@ function CalcSummary({ calc }: { calc: Record<string, number> }) {
 }
 
 function Field({ block, value, onChange }: { block: FormBlock; value: unknown; onChange: (v: unknown) => void }) {
+  const { t } = useTranslation();
   const label = (
     <span className="text-sm font-medium">
       {block.label}
@@ -446,7 +450,7 @@ function Field({ block, value, onChange }: { block: FormBlock; value: unknown; o
       <label className="block">
         {label}
         <select required={block.required} value={str} onChange={(e) => onChange(e.target.value)} className={`${inputClass} bg-white`}>
-          <option value="">Bitte wählen…</option>
+          <option value="">{t('form_fill.please_select')}</option>
           {block.options.map((o) => (
             <option key={o} value={o}>
               {o}

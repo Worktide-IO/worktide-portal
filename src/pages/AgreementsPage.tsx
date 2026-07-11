@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FileCheck2, FileText, MessageCircleQuestion, PenLine, Receipt, Repeat } from 'lucide-react';
 
 import {
@@ -8,6 +9,7 @@ import {
   type PortalInvoice,
   type PortalSubscription,
 } from '@/lib/portal';
+import i18n from '@/i18n';
 
 const INVOICE_STATUS_CLASSES: Record<string, string> = {
   paid: 'bg-green-100 text-green-700',
@@ -28,9 +30,9 @@ function expiryHint(iso: string | null): { text: string; urgent: boolean } | nul
   if (!iso) return null;
   const days = Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
   if (days > 30) return null;
-  if (days < 0) return { text: 'abgelaufen', urgent: true };
-  if (days === 0) return { text: 'läuft heute ab', urgent: true };
-  return { text: `läuft ab in ${days} ${days === 1 ? 'Tag' : 'Tagen'}`, urgent: days <= 7 };
+  if (days < 0) return { text: i18n.t('agreements.expiry_expired'), urgent: true };
+  if (days === 0) return { text: i18n.t('agreements.expiry_today'), urgent: true };
+  return { text: i18n.t('agreements.expiry_in_days', { count: days }), urgent: days <= 7 };
 }
 
 function formatPrice(cents: number, currency: string): string {
@@ -44,6 +46,7 @@ function formatPrice(cents: number, currency: string): string {
 }
 
 function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: PortalAgreement) => void }) {
+  const { t } = useTranslation();
   const valid = formatDate(a.validUntil);
   const signed = formatDate(a.signedOn);
   // Only nudge on open offers (a signed contract's end date isn't a "hurry" signal).
@@ -64,7 +67,7 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
       onChange(await portalApi.signAgreement(a.id, fullName.trim()));
       setSignOpen(false);
     } catch {
-      setError('Signatur fehlgeschlagen.');
+      setError(t('agreements.error_sign_failed'));
       setBusy(false);
     }
   }
@@ -79,7 +82,7 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
       setInquiryOpen(false);
       setInquiryMsg('');
     } catch {
-      setError('Rückfrage konnte nicht gesendet werden.');
+      setError(t('agreements.error_inquiry_failed'));
       setBusy(false);
     }
   }
@@ -100,14 +103,14 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
         </span>
       </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-500">
-        {a.signedBy ? <span>Signiert von {a.signedBy}</span> : signed ? <span>Signiert am {signed}</span> : null}
-        {valid ? <span>Gültig bis {valid}</span> : null}
+        {a.signedBy ? <span>{t('agreements.signed_by', { name: a.signedBy })}</span> : signed ? <span>{t('agreements.signed_on', { date: signed })}</span> : null}
+        {valid ? <span>{t('agreements.valid_until', { date: valid })}</span> : null}
         {expiry ? (
           <span className={expiry.urgent ? 'font-medium text-amber-700' : 'text-slate-500'}>{expiry.text}</span>
         ) : null}
         {a.hasDocument ? (
           <span className="inline-flex items-center gap-1 text-slate-600">
-            <FileCheck2 className="size-3.5" /> Dokument hinterlegt
+            <FileCheck2 className="size-3.5" /> {t('agreements.document_attached')}
           </span>
         ) : null}
       </div>
@@ -128,7 +131,7 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
             ))}
           </ul>
           <div className="mt-2 flex items-baseline justify-between border-t border-slate-200 pt-2 text-sm font-semibold">
-            <span>{a.totalIsRecurring ? 'Summe / Monat (netto)' : 'Summe (netto)'}</span>
+            <span>{a.totalIsRecurring ? t('agreements.total_monthly_net') : t('agreements.total_net')}</span>
             <span className="tabular-nums">{formatPrice(a.totalCents, a.currency)}</span>
           </div>
         </div>
@@ -137,7 +140,7 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
       {a.inquiry ? (
         <div className="mt-3 rounded-md border border-slate-100 bg-slate-50 p-2.5 text-xs">
           <span className="font-medium text-slate-600">
-            Ihre Rückfrage{a.inquiredAt ? ` · ${formatDate(a.inquiredAt)}` : ''}:
+            {t('agreements.your_inquiry')}{a.inquiredAt ? ` · ${formatDate(a.inquiredAt)}` : ''}:
           </span>
           <p className="mt-0.5 whitespace-pre-wrap text-slate-600">{a.inquiry}</p>
         </div>
@@ -148,7 +151,7 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
           {signOpen ? (
             <form onSubmit={sign} className="space-y-2">
               <label className="block text-sm">
-                Ihr vollständiger Name (Unterschrift)
+                {t('agreements.signature_name_label')}
                 <input
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -157,22 +160,22 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
                 />
               </label>
               <p className="text-xs text-slate-400">
-                Mit dem Signieren nehmen Sie das Angebot verbindlich an.
+                {t('agreements.signature_hint')}
               </p>
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
               <div className="flex gap-2">
                 <button type="submit" disabled={busy || !fullName.trim()} className="rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
-                  {busy ? 'Signieren…' : 'Verbindlich signieren'}
+                  {busy ? t('agreements.signing') : t('agreements.sign_binding')}
                 </button>
                 <button type="button" onClick={() => setSignOpen(false)} className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-600">
-                  Abbrechen
+                  {t('action.cancel')}
                 </button>
               </div>
             </form>
           ) : inquiryOpen ? (
             <form onSubmit={inquire} className="space-y-2">
               <label className="block text-sm">
-                Ihre Rückfrage an die Agentur
+                {t('agreements.inquiry_label')}
                 <textarea
                   value={inquiryMsg}
                   onChange={(e) => setInquiryMsg(e.target.value)}
@@ -184,10 +187,10 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
               {error ? <p className="text-sm text-red-600">{error}</p> : null}
               <div className="flex gap-2">
                 <button type="submit" disabled={busy || !inquiryMsg.trim()} className="rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
-                  {busy ? 'Senden…' : 'Rückfrage senden'}
+                  {busy ? t('agreements.sending') : t('agreements.send_inquiry')}
                 </button>
                 <button type="button" onClick={() => setInquiryOpen(false)} className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-600">
-                  Abbrechen
+                  {t('action.cancel')}
                 </button>
               </div>
             </form>
@@ -198,14 +201,14 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
                 onClick={() => setSignOpen(true)}
                 className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white"
               >
-                <PenLine className="size-4" /> Digital signieren
+                <PenLine className="size-4" /> {t('agreements.sign_digitally')}
               </button>
               <button
                 type="button"
                 onClick={() => setInquiryOpen(true)}
                 className="inline-flex items-center gap-1.5 rounded border border-slate-300 px-3 py-2 text-sm font-medium text-slate-700 hover:border-slate-400"
               >
-                <MessageCircleQuestion className="size-4" /> Rückfrage stellen
+                <MessageCircleQuestion className="size-4" /> {t('agreements.ask_question')}
               </button>
             </div>
           )}
@@ -216,6 +219,7 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
 }
 
 function SubscriptionCard({ s }: { s: PortalSubscription }) {
+  const { t } = useTranslation();
   const active = s.status === 'active' || s.status === 'trial';
   const next = formatDate(s.nextBillingOn);
   return (
@@ -239,7 +243,7 @@ function SubscriptionCard({ s }: { s: PortalSubscription }) {
       </div>
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-400">
         {s.systemName ? <span>{s.systemName}</span> : null}
-        {next ? <span>Nächste Abrechnung {next}</span> : null}
+        {next ? <span>{t('agreements.next_billing', { date: next })}</span> : null}
       </div>
     </div>
   );
@@ -257,6 +261,7 @@ function Section({ icon: Icon, title, children }: { icon: typeof FileText; title
 }
 
 export function AgreementsPage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<PortalAgreements | null>(null);
   // null = invoices feature off / not loaded (section hidden); array = shown.
   const [invoices, setInvoices] = useState<PortalInvoice[] | null>(null);
@@ -266,7 +271,7 @@ export function AgreementsPage() {
     portalApi
       .agreements()
       .then(setData)
-      .catch(() => setError('Angebote & Verträge konnten nicht geladen werden.'));
+      .catch(() => setError(t('agreements.error_load_failed')));
     // Invoices are a separate, feature-gated endpoint — a 403 just hides the section.
     portalApi
       .invoices()
@@ -275,7 +280,7 @@ export function AgreementsPage() {
   }, []);
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
-  if (!data) return <p className="text-sm text-slate-500">Lädt…</p>;
+  if (!data) return <p className="text-sm text-slate-500">{t('app.loading')}</p>;
 
   function replaceAgreement(updated: PortalAgreement) {
     setData((prev) => (prev ? { ...prev, agreements: prev.agreements.map((a) => (a.id === updated.id ? updated : a)) } : prev));
@@ -289,14 +294,14 @@ export function AgreementsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Angebote &amp; Verträge</h1>
-        <p className="text-sm text-slate-500">Ihre Angebote, Verträge und laufenden Leistungen.</p>
+        <h1 className="text-xl font-semibold">{t('agreements.page_title')}</h1>
+        <p className="text-sm text-slate-500">{t('agreements.page_subtitle')}</p>
       </div>
 
-      {empty ? <p className="text-sm text-slate-500">Noch nichts hinterlegt.</p> : null}
+      {empty ? <p className="text-sm text-slate-500">{t('agreements.empty')}</p> : null}
 
       {offers.length > 0 ? (
-        <Section icon={FileText} title={`Angebote (${offers.length})`}>
+        <Section icon={FileText} title={t('agreements.section_offers', { count: offers.length })}>
           {offers.map((a) => (
             <AgreementCard key={a.id} a={a} onChange={replaceAgreement} />
           ))}
@@ -304,7 +309,7 @@ export function AgreementsPage() {
       ) : null}
 
       {contracts.length > 0 ? (
-        <Section icon={FileCheck2} title={`Verträge (${contracts.length})`}>
+        <Section icon={FileCheck2} title={t('agreements.section_contracts', { count: contracts.length })}>
           {contracts.map((a) => (
             <AgreementCard key={a.id} a={a} onChange={replaceAgreement} />
           ))}
@@ -312,7 +317,7 @@ export function AgreementsPage() {
       ) : null}
 
       {projectOffers.length > 0 ? (
-        <Section icon={FileText} title="Angebote aus Vorschlägen">
+        <Section icon={FileText} title={t('agreements.section_project_offers')}>
           {projectOffers.map((o) => (
             <div key={o.id} className="rounded-lg border border-slate-200 bg-white p-4">
               <div className="flex items-start justify-between gap-3">
@@ -331,7 +336,7 @@ export function AgreementsPage() {
       ) : null}
 
       {data.subscriptions.length > 0 ? (
-        <Section icon={Repeat} title="Laufende Leistungen">
+        <Section icon={Repeat} title={t('agreements.section_subscriptions')}>
           {data.subscriptions.map((s) => (
             <SubscriptionCard key={s.id} s={s} />
           ))}
@@ -339,9 +344,9 @@ export function AgreementsPage() {
       ) : null}
 
       {invoices !== null ? (
-        <Section icon={Receipt} title={`Rechnungen${invoices.length ? ` (${invoices.length})` : ''}`}>
+        <Section icon={Receipt} title={`${t('agreements.section_invoices')}${invoices.length ? ` (${invoices.length})` : ''}`}>
           {invoices.length === 0 ? (
-            <p className="text-sm text-slate-500">Keine Rechnungen.</p>
+            <p className="text-sm text-slate-500">{t('agreements.no_invoices')}</p>
           ) : (
             <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white">
               {invoices.map((inv) => (
@@ -350,7 +355,7 @@ export function AgreementsPage() {
                     <div className="font-mono text-xs text-slate-400">{inv.number}</div>
                     <div className="text-xs text-slate-500">
                       {formatDate(inv.issuedOn)}
-                      {inv.dueOn ? ` · fällig ${formatDate(inv.dueOn)}` : ''}
+                      {inv.dueOn ? ` · ${t('agreements.invoice_due', { date: formatDate(inv.dueOn) })}` : ''}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">

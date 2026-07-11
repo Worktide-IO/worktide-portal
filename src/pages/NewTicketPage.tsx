@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { ArrowLeft, Paperclip, Sparkles, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { portalApi } from '@/lib/portal';
 
@@ -10,14 +11,15 @@ function formatBytes(n: number): string {
   return `${(n / 1024 / 1024).toFixed(1)} MB`;
 }
 
-const PRIORITIES: { value: string; label: string }[] = [
-  { value: 'low', label: 'Niedrig' },
-  { value: 'normal', label: 'Mittel' },
-  { value: 'high', label: 'Hoch' },
-  { value: 'urgent', label: 'Dringend' },
+const PRIORITIES: { value: string; labelKey: string }[] = [
+  { value: 'low', labelKey: 'new_ticket.priority_low' },
+  { value: 'normal', labelKey: 'new_ticket.priority_normal' },
+  { value: 'high', labelKey: 'new_ticket.priority_high' },
+  { value: 'urgent', labelKey: 'new_ticket.priority_urgent' },
 ];
 
 export function NewTicketPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -56,10 +58,12 @@ export function NewTicketPage() {
       setTitle(s.title);
       setPriority(s.priority);
       setSuggestNote(
-        s.projectName ? `Vorschlag übernommen · Projekt: ${s.projectName}` : 'Vorschlag übernommen.',
+        s.projectName
+          ? t('new_ticket.suggest_applied_project', { project: s.projectName })
+          : t('new_ticket.suggest_applied'),
       );
     } catch {
-      setSuggestNote('KI-Vorschlag ist derzeit nicht verfügbar.');
+      setSuggestNote(t('new_ticket.suggest_unavailable'));
     } finally {
       setSuggesting(false);
     }
@@ -86,7 +90,7 @@ export function NewTicketPage() {
     } catch (err) {
       const detail =
         (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
-      setError(detail ?? 'Ticket konnte nicht angelegt werden.');
+      setError(detail ?? t('new_ticket.create_error'));
       setBusy(false);
     }
   }
@@ -94,12 +98,12 @@ export function NewTicketPage() {
   return (
     <div className="space-y-4">
       <Link to="/tickets" className="inline-flex items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900">
-        <ArrowLeft className="size-4" /> Zurück
+        <ArrowLeft className="size-4" /> {t('action.back')}
       </Link>
-      <h1 className="text-xl font-semibold">Neues Ticket</h1>
+      <h1 className="text-xl font-semibold">{t('new_ticket.title')}</h1>
       <form onSubmit={submit} className="space-y-4 rounded-lg border border-slate-200 bg-white p-5">
         <label className="block text-sm">
-          Betreff
+          {t('new_ticket.subject')}
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -109,15 +113,15 @@ export function NewTicketPage() {
         </label>
         <div className="text-sm">
           <div className="flex items-center justify-between gap-2">
-            <span>Beschreibung</span>
+            <span>{t('new_ticket.description')}</span>
             <button
               type="button"
               onClick={suggest}
               disabled={suggesting || !description.trim()}
               className="inline-flex items-center gap-1.5 rounded-full bg-violet-50 px-2.5 py-1 text-xs font-medium text-violet-700 hover:bg-violet-100 disabled:opacity-50"
-              title="Titel & Priorität aus der Beschreibung vorschlagen"
+              title={t('new_ticket.suggest_title')}
             >
-              <Sparkles className="size-3.5" /> {suggesting ? 'Analysiert…' : 'Vorschlag von KI'}
+              <Sparkles className="size-3.5" /> {suggesting ? t('new_ticket.analyzing') : t('new_ticket.suggest_button')}
             </button>
           </div>
           <textarea
@@ -130,7 +134,7 @@ export function NewTicketPage() {
         </div>
         {projects.length > 1 ? (
           <label className="block text-sm">
-            Projekt
+            {t('new_ticket.project')}
             <select
               value={projectId}
               onChange={(e) => setProjectId(e.target.value)}
@@ -145,7 +149,7 @@ export function NewTicketPage() {
           </label>
         ) : null}
         <label className="block text-sm">
-          Priorität
+          {t('new_ticket.priority')}
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
@@ -153,19 +157,19 @@ export function NewTicketPage() {
           >
             {PRIORITIES.map((p) => (
               <option key={p.value} value={p.value}>
-                {p.label}
+                {t(p.labelKey)}
               </option>
             ))}
           </select>
         </label>
         <div className="text-sm">
-          <span className="block">Anhänge</span>
+          <span className="block">{t('new_ticket.attachments')}</span>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
             className="mt-1 inline-flex cursor-pointer items-center gap-1.5 rounded border border-slate-300 px-3 py-2 text-slate-600 hover:border-slate-400"
           >
-            <Paperclip className="size-4" /> Dateien auswählen
+            <Paperclip className="size-4" /> {t('new_ticket.choose_files')}
           </button>
           <input
             ref={fileInputRef}
@@ -188,7 +192,7 @@ export function NewTicketPage() {
                     type="button"
                     onClick={() => setFiles((prev) => prev.filter((_, j) => j !== i))}
                     className="shrink-0 text-slate-400 hover:text-red-600"
-                    aria-label="Entfernen"
+                    aria-label={t('new_ticket.remove')}
                   >
                     <X className="size-3.5" />
                   </button>
@@ -203,7 +207,7 @@ export function NewTicketPage() {
           disabled={busy || !title.trim()}
           className="cursor-pointer rounded bg-[var(--brand-primary)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
-          {busy ? 'Anlegen…' : 'Ticket anlegen'}
+          {busy ? t('new_ticket.creating') : t('new_ticket.create')}
         </button>
       </form>
     </div>
