@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { MailX } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { BrandMark } from '@/components/BrandMark';
 import { Footer } from '@/components/Footer';
@@ -8,6 +9,7 @@ import { publicNewsletter } from '@/lib/publicNewsletter';
 
 /** Public /newsletter/unsubscribe/:token — one-click opt-out, no account. */
 export function NewsletterUnsubscribePage() {
+  const { t } = useTranslation();
   const { token = '' } = useParams();
   const [info, setInfo] = useState<{ newsletterTitle: string; unsubscribed: boolean } | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -43,22 +45,22 @@ export function NewsletterUnsubscribePage() {
       <main className="mx-auto w-full max-w-xl flex-1 px-4 py-8">
         {notFound ? (
           <div className="rounded-lg border border-dashed border-slate-200 bg-white py-16 text-center text-sm text-slate-500">
-            Dieser Abmelde-Link ist ungültig.
+            {t('newsletter_unsub.invalid_link')}
           </div>
         ) : !info ? (
-          <p className="text-sm text-slate-500">Lädt…</p>
+          <p className="text-sm text-slate-500">{t('app.loading')}</p>
         ) : (
           <div className="rounded-xl border border-slate-200 bg-white px-6 py-8 text-center">
             <MailX className="mx-auto mb-3 size-9 text-slate-400" />
             <h1 className="text-lg font-semibold text-slate-900">{info.newsletterTitle}</h1>
             {done ? (
               <p className="mt-4 text-sm font-medium text-slate-700">
-                Sie wurden von diesem Newsletter abgemeldet.
+                {t('newsletter_unsub.done')}
               </p>
             ) : (
               <>
                 <p className="mt-2 text-sm text-slate-600">
-                  Möchten Sie diesen Newsletter abbestellen?
+                  {t('newsletter_unsub.confirm')}
                 </p>
                 <button
                   type="button"
@@ -66,7 +68,7 @@ export function NewsletterUnsubscribePage() {
                   disabled={busy}
                   className="mt-6 rounded-md border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-50"
                 >
-                  {busy ? 'Wird abgemeldet…' : 'Abbestellen'}
+                  {busy ? t('newsletter_unsub.unsubscribing') : t('newsletter_unsub.unsubscribe')}
                 </button>
               </>
             )}

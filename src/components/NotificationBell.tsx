@@ -12,8 +12,11 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 
+import { useTranslation } from 'react-i18next';
+
 import { portalApi, type PortalNotification } from '@/lib/portal';
 import { useNotificationStream } from '@/lib/mercure';
+import i18n from '@/i18n';
 
 const TYPE_ICON: Record<string, LucideIcon> = {
   mention: AtSign,
@@ -28,17 +31,18 @@ const DROPDOWN_LIMIT = 8;
 
 function relativeTime(iso: string): string {
   const min = Math.round((Date.now() - new Date(iso).getTime()) / 60000);
-  if (min < 1) return 'gerade eben';
-  if (min < 60) return `vor ${min} Min.`;
+  if (min < 1) return i18n.t('notif_bell.time_now');
+  if (min < 60) return i18n.t('notif_bell.time_minutes', { count: min });
   const h = Math.round(min / 60);
-  if (h < 24) return `vor ${h} Std.`;
+  if (h < 24) return i18n.t('notif_bell.time_hours', { count: h });
   const d = Math.round(h / 24);
-  if (d === 1) return 'gestern';
-  if (d < 7) return `vor ${d} Tagen`;
+  if (d === 1) return i18n.t('notif_bell.time_yesterday');
+  if (d < 7) return i18n.t('notif_bell.time_days', { count: d });
   return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
 }
 
 export function NotificationBell() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [items, setItems] = useState<PortalNotification[]>([]);
   const [unread, setUnread] = useState(0);
@@ -95,7 +99,7 @@ export function NotificationBell() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="Benachrichtigungen"
+        aria-label={t('notif_bell.title')}
         className="relative inline-flex size-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900"
       >
         <Bell className="size-5" />
@@ -111,7 +115,7 @@ export function NotificationBell() {
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} aria-hidden />
           <div className="absolute right-0 z-20 mt-2 w-80 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg">
             <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
-              <span className="text-sm font-semibold text-slate-700">Benachrichtigungen</span>
+              <span className="text-sm font-semibold text-slate-700">{t('notif_bell.title')}</span>
               <button
                 type="button"
                 onClick={markAll}
@@ -119,11 +123,11 @@ export function NotificationBell() {
                 className="inline-flex items-center gap-1 rounded px-1.5 py-1 text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800 disabled:opacity-40"
               >
                 <CheckCheck className="size-3.5" />
-                Alle gelesen
+                {t('notif_bell.mark_all_read')}
               </button>
             </div>
             {items.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-slate-500">Keine Benachrichtigungen.</p>
+              <p className="px-4 py-6 text-center text-sm text-slate-500">{t('notif_bell.empty')}</p>
             ) : (
               <ul className="max-h-96 divide-y divide-slate-100 overflow-y-auto">
                 {items.map((n) => {
@@ -159,7 +163,7 @@ export function NotificationBell() {
                 }}
                 className="w-full rounded px-2 py-1.5 text-center text-xs font-medium text-slate-500 hover:bg-slate-100 hover:text-slate-800"
               >
-                Alle anzeigen
+                {t('notif_bell.view_all')}
               </button>
             </div>
           </div>

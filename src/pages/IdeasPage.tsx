@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { ChevronUp, Lightbulb, MessagesSquare, Plus, Send, Sparkles, Target } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import {
   portalApi,
@@ -49,6 +50,7 @@ function GoalCard({ g }: { g: PortalGoal }) {
 }
 
 export function IdeasPage() {
+  const { t } = useTranslation();
   const [goals, setGoals] = useState<PortalGoal[] | null>(null);
   const [ideas, setIdeas] = useState<PortalIdea[] | null>(null);
   const [notes, setNotes] = useState<PortalBrainstormNote[] | null>(null);
@@ -62,10 +64,10 @@ export function IdeasPage() {
   const [votingIds, setVotingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    portalApi.goals().then(setGoals).catch(() => setError('Ziele konnten nicht geladen werden.'));
-    portalApi.ideas().then(setIdeas).catch(() => setError('Ideen konnten nicht geladen werden.'));
-    portalApi.brainstorm().then(setNotes).catch(() => setError('Brainstorming konnte nicht geladen werden.'));
-  }, []);
+    portalApi.goals().then(setGoals).catch(() => setError(t('ideas.goals_load_error')));
+    portalApi.ideas().then(setIdeas).catch(() => setError(t('ideas.ideas_load_error')));
+    portalApi.brainstorm().then(setNotes).catch(() => setError(t('ideas.brainstorm_load_error')));
+  }, [t]);
 
   async function postNote(e: React.FormEvent) {
     e.preventDefault();
@@ -120,17 +122,17 @@ export function IdeasPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-xl font-semibold">Ziele &amp; Ideen</h1>
-        <p className="text-sm text-slate-500">Gemeinsame Ziele verfolgen und Ideen einbringen.</p>
+        <h1 className="text-xl font-semibold">{t('ideas.title')}</h1>
+        <p className="text-sm text-slate-500">{t('ideas.subtitle')}</p>
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-          <Target className="size-4 text-slate-400" /> Ziele
+          <Target className="size-4 text-slate-400" /> {t('ideas.goals_heading')}
         </h2>
-        {goals && goals.length === 0 ? <p className="text-sm text-slate-500">Noch keine Ziele.</p> : null}
+        {goals && goals.length === 0 ? <p className="text-sm text-slate-500">{t('ideas.no_goals')}</p> : null}
         <div className="grid gap-3 sm:grid-cols-3">
           {(goals ?? []).map((g) => (
             <GoalCard key={g.id} g={g} />
@@ -140,21 +142,21 @@ export function IdeasPage() {
 
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-          <Lightbulb className="size-4 text-slate-400" /> Ideen fürs Business
+          <Lightbulb className="size-4 text-slate-400" /> {t('ideas.ideas_heading')}
         </h2>
 
         <form onSubmit={submit} className="space-y-2 rounded-lg border border-slate-200 bg-white p-3">
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Neue Idee einreichen…"
+            placeholder={t('ideas.new_idea_placeholder')}
             className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
           />
           <textarea
             value={ideaDesc}
             onChange={(e) => setIdeaDesc(e.target.value)}
             rows={2}
-            placeholder="Beschreibung (optional)…"
+            placeholder={t('ideas.desc_placeholder')}
             className="w-full rounded border border-slate-300 px-3 py-2 text-sm"
           />
           <div className="flex justify-end">
@@ -163,7 +165,7 @@ export function IdeasPage() {
               disabled={busy || !title.trim()}
               className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
-              <Plus className="size-4" /> Einreichen
+              <Plus className="size-4" /> {t('ideas.submit')}
             </button>
           </div>
         </form>
@@ -213,12 +215,12 @@ export function IdeasPage() {
 
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-          <MessagesSquare className="size-4 text-slate-400" /> Brainstorming
+          <MessagesSquare className="size-4 text-slate-400" /> {t('ideas.brainstorm_heading')}
         </h2>
 
         <div className="rounded-lg border border-slate-200 bg-white p-4">
           {notes && notes.length === 0 ? (
-            <p className="text-sm text-slate-500">Noch keine Beiträge — starten Sie die Unterhaltung.</p>
+            <p className="text-sm text-slate-500">{t('ideas.no_notes')}</p>
           ) : null}
 
           <ul className="space-y-4">
@@ -232,7 +234,7 @@ export function IdeasPage() {
                     </span>
                     {n.origin === 'ai' ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-violet-100 px-1.5 py-0.5 text-violet-700">
-                        <Sparkles className="size-3" /> KI
+                        <Sparkles className="size-3" /> {t('ideas.ai_badge')}
                       </span>
                     ) : null}
                     <span className="text-slate-400">{formatWhen(n.createdAt)}</span>
@@ -247,7 +249,7 @@ export function IdeasPage() {
             <input
               value={noteText}
               onChange={(e) => setNoteText(e.target.value)}
-              placeholder="Beitrag schreiben…"
+              placeholder={t('ideas.note_placeholder')}
               className="flex-1 rounded border border-slate-300 px-3 py-2 text-sm"
             />
             <button
@@ -255,7 +257,7 @@ export function IdeasPage() {
               disabled={noteBusy || !noteText.trim()}
               className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
-              <Send className="size-4" /> Senden
+              <Send className="size-4" /> {t('ideas.send')}
             </button>
           </form>
         </div>

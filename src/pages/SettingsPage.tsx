@@ -71,7 +71,7 @@ export function SettingsPage() {
   }
 
   if (loading || !prefs) {
-    return <p className="p-6 text-sm text-slate-500">Lädt…</p>;
+    return <p className="p-6 text-sm text-slate-500">{t('app.loading')}</p>;
   }
 
   const emailOn = prefs.email;
@@ -79,17 +79,17 @@ export function SettingsPage() {
   return (
     <div className="mx-auto w-full max-w-2xl">
       <div className="mb-4">
-        <h1 className="text-xl font-semibold text-slate-900">Einstellungen</h1>
-        <p className="text-sm text-slate-500">Benachrichtigungen</p>
+        <h1 className="text-xl font-semibold text-slate-900">{t('settings.title')}</h1>
+        <p className="text-sm text-slate-500">{t('settings.subtitle')}</p>
       </div>
 
       {/* In-app is always on — set expectations up front. */}
       <div className="mb-4 flex items-start gap-3 rounded-lg border border-slate-200 bg-white px-4 py-3">
         <Bell className="mt-0.5 size-5 shrink-0 text-[var(--brand-primary)]" />
         <div className="text-sm">
-          <p className="font-medium text-slate-800">In-App-Benachrichtigungen</p>
+          <p className="font-medium text-slate-800">{t('settings.inapp_title')}</p>
           <p className="text-slate-500">
-            Die Glocke oben zeigt Ihre Benachrichtigungen immer in Echtzeit — das lässt sich nicht abschalten.
+            {t('settings.inapp_hint')}
           </p>
         </div>
       </div>
@@ -99,8 +99,8 @@ export function SettingsPage() {
         <label className="flex cursor-pointer items-start gap-3 border-b border-slate-100 px-4 py-4">
           <Mail className="mt-0.5 size-5 shrink-0 text-slate-400" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-slate-800">E-Mail-Benachrichtigungen</p>
-            <p className="text-xs text-slate-500">Zusätzlich zur Glocke per E-Mail informiert werden.</p>
+            <p className="text-sm font-medium text-slate-800">{t('settings.email_title')}</p>
+            <p className="text-xs text-slate-500">{t('settings.email_hint')}</p>
           </div>
           <input
             type="checkbox"
@@ -114,9 +114,9 @@ export function SettingsPage() {
         <label className="flex cursor-pointer items-start gap-3 border-b border-slate-100 px-4 py-4">
           <MessageSquare className="mt-0.5 size-5 shrink-0 text-slate-400" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-slate-800">Chat-Benachrichtigungen</p>
+            <p className="text-sm font-medium text-slate-800">{t('settings.chat_title')}</p>
             <p className="text-xs text-slate-500">
-              Zusätzlich per Slack, Mattermost oder Teams. Verbindung unten einrichten.
+              {t('settings.chat_hint')}
             </p>
           </div>
           <input
@@ -129,7 +129,7 @@ export function SettingsPage() {
 
         {/* Frequency */}
         <div className={`border-b border-slate-100 px-4 py-4 ${emailOn ? '' : 'pointer-events-none opacity-40'}`}>
-          <p className="mb-2 text-sm font-medium text-slate-800">Häufigkeit</p>
+          <p className="mb-2 text-sm font-medium text-slate-800">{t('settings.frequency_heading')}</p>
           <div className="space-y-1.5">
             {FREQUENCIES.map((f) => (
               <label key={f.value} className="flex cursor-pointer items-center gap-2.5">
@@ -150,7 +150,7 @@ export function SettingsPage() {
 
         {/* Per-type toggles */}
         <div className={`border-b border-slate-100 px-4 py-4 ${emailOn ? '' : 'pointer-events-none opacity-40'}`}>
-          <p className="mb-2 text-sm font-medium text-slate-800">Wobei möchten Sie E-Mails erhalten?</p>
+          <p className="mb-2 text-sm font-medium text-slate-800">{t('settings.types_heading')}</p>
           <div className="space-y-1.5">
             {TYPE_LABELS.map((item) => (
               <label key={item.key} className="flex cursor-pointer items-center gap-2.5">
@@ -178,19 +178,19 @@ export function SettingsPage() {
               disabled={!emailOn}
               className="size-4 accent-[var(--brand-primary)]"
             />
-            <span className="text-sm font-medium text-slate-800">Ruhezeiten</span>
-            <span className="text-xs text-slate-400">· keine Sofort-E-Mails in diesem Zeitfenster</span>
+            <span className="text-sm font-medium text-slate-800">{t('settings.quiet_hours')}</span>
+            <span className="text-xs text-slate-400">· {t('settings.quiet_hours_hint')}</span>
           </label>
           {prefs.quietHours !== null ? (
             <div className="mt-3 flex items-center gap-2 pl-6 text-sm text-slate-600">
-              <span>Von</span>
+              <span>{t('settings.quiet_hours_from')}</span>
               <input
                 type="time"
                 value={prefs.quietHours.start}
                 onChange={(e) => patch({ quietHours: { ...prefs.quietHours!, start: e.target.value } })}
                 className="rounded-md border border-slate-200 px-2 py-1"
               />
-              <span>bis</span>
+              <span>{t('settings.quiet_hours_to')}</span>
               <input
                 type="time"
                 value={prefs.quietHours.end}
@@ -209,11 +209,11 @@ export function SettingsPage() {
           disabled={saving}
           className="inline-flex items-center gap-1.5 rounded-md bg-[var(--brand-primary)] px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
         >
-          {saving ? 'Speichert…' : 'Speichern'}
+          {saving ? t('settings.saving') : t('action.save')}
         </button>
         {savedAt !== null ? (
           <span className="inline-flex items-center gap-1 text-sm text-slate-500">
-            <Check className="size-4 text-[var(--brand-primary)]" /> Gespeichert
+            <Check className="size-4 text-[var(--brand-primary)]" /> {t('settings.saved')}
           </span>
         ) : null}
       </div>
@@ -235,6 +235,7 @@ const CHAT_PROVIDERS: { value: ChatProvider; label: string }[] = [
  * posts a live message so the user can confirm the connection.
  */
 function ChatWebhookCard() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<ChatWebhookStatus | null>(null);
   const [provider, setProvider] = useState<ChatProvider>('slack');
   const [url, setUrl] = useState('');
@@ -260,9 +261,9 @@ function ChatWebhookCard() {
       .then((s) => {
         setStatus(s);
         setUrl('');
-        setMsg('Verbindung gespeichert.');
+        setMsg(t('settings.webhook_saved'));
       })
-      .catch(() => setMsg('Ungültige oder unsichere URL.'))
+      .catch(() => setMsg(t('settings.webhook_invalid_url')))
       .finally(() => setBusy(false));
   }
 
@@ -271,8 +272,8 @@ function ChatWebhookCard() {
     setMsg(null);
     portalApi
       .testChatWebhook()
-      .then((r) => setMsg(r.sent ? 'Testnachricht gesendet ✓' : 'Senden fehlgeschlagen (Versand aktiviert?).'))
-      .catch(() => setMsg('Senden fehlgeschlagen.'))
+      .then((r) => setMsg(r.sent ? t('settings.test_sent') : t('settings.test_failed_enabled')))
+      .catch(() => setMsg(t('settings.test_failed')))
       .finally(() => setBusy(false));
   }
 
@@ -293,26 +294,26 @@ function ChatWebhookCard() {
     <div className="mt-6 rounded-lg border border-slate-200 bg-white p-4">
       <div className="mb-3 flex items-center gap-2">
         <MessageSquare className="size-5 text-slate-400" />
-        <h2 className="text-sm font-semibold text-slate-800">Chat-Verbindung</h2>
+        <h2 className="text-sm font-semibold text-slate-800">{t('settings.chat_connection')}</h2>
       </div>
 
       {status.configured ? (
         <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-slate-600">
           <span className="rounded bg-slate-100 px-2 py-0.5 text-xs">
-            {CHAT_PROVIDERS.find((p) => p.value === status.provider)?.label ?? status.provider} · eingerichtet
+            {CHAT_PROVIDERS.find((p) => p.value === status.provider)?.label ?? status.provider} · {t('settings.chat_configured')}
           </span>
           <button type="button" onClick={test} disabled={busy} className="rounded-md border border-slate-300 px-3 py-1 text-xs font-medium hover:bg-slate-50 disabled:opacity-50">
-            Test senden
+            {t('settings.test_send')}
           </button>
           <button type="button" onClick={remove} disabled={busy} className="rounded-md border border-red-200 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-50 disabled:opacity-50">
-            Entfernen
+            {t('settings.remove')}
           </button>
         </div>
       ) : null}
 
       <div className="flex flex-wrap items-end gap-2">
         <div className="space-y-1">
-          <label className="block text-xs font-medium text-slate-600">Dienst</label>
+          <label className="block text-xs font-medium text-slate-600">{t('settings.service')}</label>
           <select value={provider} onChange={(e) => setProvider(e.target.value as ChatProvider)} className="rounded-md border border-slate-300 px-2 py-2 text-sm">
             {CHAT_PROVIDERS.map((p) => (
               <option key={p.value} value={p.value}>
@@ -323,7 +324,7 @@ function ChatWebhookCard() {
         </div>
         <div className="min-w-56 grow space-y-1">
           <label className="block text-xs font-medium text-slate-600">
-            Incoming-Webhook-URL {status.configured ? '(neu setzen)' : ''}
+            {t('settings.webhook_url_label')} {status.configured ? t('settings.webhook_url_reset') : ''}
           </label>
           <input
             type="url"
@@ -334,7 +335,7 @@ function ChatWebhookCard() {
           />
         </div>
         <button type="button" onClick={saveWebhook} disabled={busy || !url.trim()} className="rounded-md bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50">
-          Speichern
+          {t('action.save')}
         </button>
       </div>
       {msg ? <p className="mt-2 text-xs text-slate-500">{msg}</p> : null}

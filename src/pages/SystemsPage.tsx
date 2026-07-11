@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AlertTriangle, ExternalLink, Server, Wrench } from 'lucide-react';
 
 import { portalApi, type PortalSystem, type PortalSystemIncident } from '@/lib/portal';
@@ -47,11 +48,12 @@ const WINDOW_OPTIONS = [7, 30, 90] as const;
 
 /** Uptime history, one bar per day. Oldest → newest, left → right. */
 function UptimeSparkline({ days, windowDays }: { days: PortalSystem['uptimeDays']; windowDays: number }) {
+  const { t } = useTranslation();
   if (days.length === 0) {
-    return <p className="text-xs text-slate-400">Noch keine Verlaufsdaten.</p>;
+    return <p className="text-xs text-slate-400">{t('systems.no_history')}</p>;
   }
   return (
-    <div className="flex items-end gap-0.5" title={`Verfügbarkeit der letzten ${windowDays} Tage`}>
+    <div className="flex items-end gap-0.5" title={t('systems.availability_last_days', { days: windowDays })}>
       {days.map((d) => (
         <span
           key={d.day}
@@ -65,6 +67,7 @@ function UptimeSparkline({ days, windowDays }: { days: PortalSystem['uptimeDays'
 }
 
 export function SystemsPage() {
+  const { t } = useTranslation();
   const [systems, setSystems] = useState<PortalSystem[] | null>(null);
   const [incidents, setIncidents] = useState<PortalSystemIncident[]>([]);
   const [windowDays, setWindowDays] = useState(30);
@@ -79,7 +82,7 @@ export function SystemsPage() {
         setSystems(d.systems);
         setIncidents(d.incidents);
       })
-      .catch(() => active && setError('Systeme konnten nicht geladen werden.'));
+      .catch(() => active && setError(t('systems.load_error')));
     return () => {
       active = false;
     };
@@ -91,11 +94,11 @@ export function SystemsPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Monitoring</h1>
-          <p className="text-sm text-slate-500">Verfügbarkeit, Antwortzeiten und Störungen Ihrer Systeme.</p>
+          <h1 className="text-xl font-semibold">{t('systems.title')}</h1>
+          <p className="text-sm text-slate-500">{t('systems.subtitle')}</p>
         </div>
         <label className="flex items-center gap-2 text-sm text-slate-500">
-          Zeitraum
+          {t('systems.period')}
           <select
             value={windowDays}
             onChange={(e) => setWindowDays(Number(e.target.value))}
@@ -103,7 +106,7 @@ export function SystemsPage() {
           >
             {WINDOW_OPTIONS.map((d) => (
               <option key={d} value={d}>
-                {d} Tage
+                {t('systems.n_days', { count: d })}
               </option>
             ))}
           </select>
@@ -111,17 +114,15 @@ export function SystemsPage() {
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {systems === null && !error ? <p className="text-sm text-slate-500">Lädt…</p> : null}
+      {systems === null && !error ? <p className="text-sm text-slate-500">{t('app.loading')}</p> : null}
       {systems && systems.length === 0 ? (
-        <p className="text-sm text-slate-500">Keine Systeme hinterlegt.</p>
+        <p className="text-sm text-slate-500">{t('systems.empty')}</p>
       ) : null}
 
       {openIncidents.length > 0 ? (
         <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           <AlertTriangle className="size-4 shrink-0" />
-          {openIncidents.length === 1
-            ? '1 System hat aktuell eine Störung.'
-            : `${openIncidents.length} Systeme haben aktuell eine Störung.`}
+          {t('systems.outage_count', { count: openIncidents.length })}
         </div>
       ) : null}
 
@@ -159,13 +160,13 @@ export function SystemsPage() {
                   <div className="flex items-baseline justify-between text-sm">
                     <span className="font-medium text-slate-700">{s.uptimePct}%</span>
                     <span className="text-xs text-slate-400">
-                      Ø {s.avgResponseMs !== null ? `${s.avgResponseMs} ms` : '—'} · {windowDays} Tage
+                      Ø {s.avgResponseMs !== null ? `${s.avgResponseMs} ms` : '—'} · {t('systems.n_days', { count: windowDays })}
                     </span>
                   </div>
                   <UptimeSparkline days={s.uptimeDays} windowDays={windowDays} />
                 </div>
               ) : (
-                <p className="mt-4 text-xs text-slate-400">Keine Verfügbarkeitsdaten.</p>
+                <p className="mt-4 text-xs text-slate-400">{t('systems.no_availability')}</p>
               )}
 
               {safeUrl(s.url) ? (
@@ -186,7 +187,7 @@ export function SystemsPage() {
 
       {incidents.length > 0 ? (
         <div className="rounded-lg border border-slate-200 bg-white p-4">
-          <h2 className="text-sm font-semibold text-slate-700">Vorfälle & Wartung</h2>
+          <h2 className="text-sm font-semibold text-slate-700">{t('systems.incidents_heading')}</h2>
           <ul className="mt-3 divide-y divide-slate-100">
             {incidents.map((i) => {
               const isMaintenance = i.kind === 'maintenance';
@@ -205,7 +206,7 @@ export function SystemsPage() {
                           i.open ? statusStyle(isMaintenance ? 'maintenance' : 'down').badge : 'bg-slate-100 text-slate-500'
                         }`}
                       >
-                        {i.open ? i.kindLabel : 'Behoben'}
+                        {i.open ? i.kindLabel : t('systems.resolved')}
                       </span>
                     </div>
                     <p className="mt-0.5 text-xs text-slate-500">

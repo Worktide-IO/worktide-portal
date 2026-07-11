@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, MessageCircle, Sparkles, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 import { portalApi, type PortalProposal } from '@/lib/portal';
 import { safeUrl } from '@/lib/safeUrl';
 
-const TABS: { key: string; label: string }[] = [
-  { key: 'new', label: 'Neu' },
-  { key: 'in_review', label: 'In Prüfung' },
-  { key: 'accepted', label: 'Angenommen' },
-  { key: 'rejected', label: 'Abgelehnt' },
+const TABS: { key: string; labelKey: string }[] = [
+  { key: 'new', labelKey: 'proposals.tab_new' },
+  { key: 'in_review', labelKey: 'proposals.tab_in_review' },
+  { key: 'accepted', labelKey: 'proposals.tab_accepted' },
+  { key: 'rejected', labelKey: 'proposals.tab_rejected' },
 ];
 
 function formatPrice(cents: number | null | undefined, currency: string): string | null {
@@ -21,14 +22,15 @@ function formatPrice(cents: number | null | undefined, currency: string): string
 }
 
 export function ProposalsPage() {
+  const { t: translate } = useTranslation();
   const [proposals, setProposals] = useState<PortalProposal[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState('new');
   const [project, setProject] = useState('__all__');
 
   useEffect(() => {
-    portalApi.proposals().then(setProposals).catch(() => setError('Vorschläge konnten nicht geladen werden.'));
-  }, []);
+    portalApi.proposals().then(setProposals).catch(() => setError(translate('proposals.load_error')));
+  }, [translate]);
 
   const projects = useMemo(
     () => [...new Set((proposals ?? []).map((p) => p.projectName))].sort(),
@@ -54,17 +56,17 @@ export function ProposalsPage() {
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold">Vorschläge</h1>
-          <p className="text-sm text-slate-500">Ideen zu Ihren Projekten – ansehen, vergleichen und entscheiden.</p>
+          <h1 className="text-xl font-semibold">{translate('proposals.title')}</h1>
+          <p className="text-sm text-slate-500">{translate('proposals.subtitle')}</p>
         </div>
         {projects.length > 1 ? (
           <select
             value={project}
             onChange={(e) => setProject(e.target.value)}
             className="shrink-0 rounded border border-slate-300 bg-white px-3 py-2 text-sm"
-            aria-label="Projekt wechseln"
+            aria-label={translate('proposals.switch_project')}
           >
-            <option value="__all__">Alle Projekte</option>
+            <option value="__all__">{translate('proposals.all_projects')}</option>
             {projects.map((p) => (
               <option key={p} value={p}>
                 {p}
@@ -86,14 +88,14 @@ export function ProposalsPage() {
               tab === t.key ? 'border-slate-900 font-medium text-slate-900' : 'border-transparent text-slate-500 hover:text-slate-800'
             }`}
           >
-            {t.label}
+            {translate(t.labelKey)}
             {counts[t.key] ? <span className="ml-1.5 text-xs text-slate-400">{counts[t.key]}</span> : null}
           </button>
         ))}
       </div>
 
       {proposals && visible.length === 0 ? (
-        <p className="text-sm text-slate-500">Keine Vorschläge in dieser Ansicht.</p>
+        <p className="text-sm text-slate-500">{translate('proposals.empty')}</p>
       ) : null}
 
       <div className="space-y-4">
@@ -129,19 +131,21 @@ function MockupImage({ url, label }: { url: string; label: string }) {
 }
 
 function MockupCompare({ beforeUrl, afterUrl }: { beforeUrl: string | null; afterUrl: string | null }) {
+  const { t } = useTranslation();
   if (!beforeUrl && !afterUrl) return null;
   return (
     <div className="mt-4 space-y-2">
-      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Mockup</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t('proposals.mockup')}</div>
       <div className="grid gap-3 sm:grid-cols-2">
-        {beforeUrl ? <MockupImage url={beforeUrl} label="Vorher" /> : null}
-        {afterUrl ? <MockupImage url={afterUrl} label="Nachher" /> : null}
+        {beforeUrl ? <MockupImage url={beforeUrl} label={t('proposals.before')} /> : null}
+        {afterUrl ? <MockupImage url={afterUrl} label={t('proposals.after')} /> : null}
       </div>
     </div>
   );
 }
 
 function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onChange: (p: PortalProposal) => void }) {
+  const { t } = useTranslation();
   const [variant, setVariant] = useState<number | undefined>(undefined);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [feedback, setFeedback] = useState('');
@@ -158,7 +162,7 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
       onChange(await fn());
       return true;
     } catch {
-      setError('Aktion fehlgeschlagen. Bitte erneut versuchen.');
+      setError(t('proposals.action_failed'));
       return false;
     } finally {
       setBusy(false);
@@ -183,13 +187,13 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
       {p.rationale ? <p className="mt-3 text-sm text-slate-700">{p.rationale}</p> : null}
       {p.expectedBenefit ? (
         <p className="mt-2 text-sm text-slate-600">
-          <span className="font-medium text-slate-700">Erwarteter Nutzen: </span>
+          <span className="font-medium text-slate-700">{t('proposals.expected_benefit')} </span>
           {p.expectedBenefit}
         </p>
       ) : null}
 
       <div className="mt-3 flex flex-wrap gap-2 text-xs text-slate-500">
-        {p.effortHours !== null ? <span className="rounded bg-slate-100 px-2 py-0.5">~ {p.effortHours} Std.</span> : null}
+        {p.effortHours !== null ? <span className="rounded bg-slate-100 px-2 py-0.5">{t('proposals.effort_hours', { hours: p.effortHours })}</span> : null}
         {formatPrice(p.costCents, p.currency) ? (
           <span className="rounded bg-slate-100 px-2 py-0.5">{formatPrice(p.costCents, p.currency)}</span>
         ) : null}
@@ -200,7 +204,7 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
 
       {p.variants.length > 0 && !decided ? (
         <div className="mt-4 space-y-2">
-          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Varianten vergleichen</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">{t('proposals.compare_variants')}</div>
           <div className="grid gap-2 sm:grid-cols-2">
             {p.variants.map((v, i) => (
               <button
@@ -213,7 +217,7 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
               >
                 <div className="font-medium">{v.label}</div>
                 <div className="mt-1 text-xs text-slate-500">
-                  {[v.effortHours ? `${v.effortHours} Std.` : null, formatPrice(v.costCents, p.currency)].filter(Boolean).join(' · ')}
+                  {[v.effortHours ? t('proposals.variant_hours', { hours: v.effortHours }) : null, formatPrice(v.costCents, p.currency)].filter(Boolean).join(' · ')}
                 </div>
               </button>
             ))}
@@ -223,16 +227,18 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
 
       {p.customerFeedback ? (
         <p className="mt-3 rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-600">
-          <span className="font-medium">Ihre Rückfrage: </span>
+          <span className="font-medium">{t('proposals.your_query')} </span>
           {p.customerFeedback}
         </p>
       ) : null}
 
       {p.ticketIdentifier || p.offerReference ? (
         <p className="mt-3 text-sm text-green-700">
-          Angenommen →{p.offerReference ? ` Angebot ${p.offerReference}` : ''}
+          {t('proposals.accepted_prefix')}
+          {p.offerReference ? t('proposals.accepted_offer', { ref: p.offerReference }) : ''}
           {p.ticketIdentifier && p.offerReference ? ' ·' : ''}
-          {p.ticketIdentifier ? ` Ticket ${p.ticketIdentifier}` : ''} angelegt.
+          {p.ticketIdentifier ? t('proposals.accepted_ticket', { id: p.ticketIdentifier }) : ''}
+          {t('proposals.accepted_suffix')}
         </p>
       ) : null}
 
@@ -245,7 +251,7 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
               onClick={() => run(() => portalApi.acceptProposal(p.id, variant))}
               className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
-              <Check className="size-4" /> Annehmen
+              <Check className="size-4" /> {t('proposals.accept')}
             </button>
             <button
               type="button"
@@ -253,7 +259,7 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
               onClick={() => setFeedbackOpen((o) => !o)}
               className="inline-flex items-center gap-1.5 rounded border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
             >
-              <MessageCircle className="size-4" /> Rückfrage
+              <MessageCircle className="size-4" /> {t('proposals.query')}
             </button>
             <button
               type="button"
@@ -261,7 +267,7 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
               onClick={() => run(() => portalApi.rejectProposal(p.id))}
               className="inline-flex items-center gap-1.5 rounded border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
             >
-              <X className="size-4" /> Ablehnen
+              <X className="size-4" /> {t('proposals.reject')}
             </button>
           </div>
 
@@ -283,11 +289,11 @@ function ProposalCard({ proposal: p, onChange }: { proposal: PortalProposal; onC
               <input
                 value={feedback}
                 onChange={(e) => setFeedback(e.target.value)}
-                placeholder="Ihre Rückfrage…"
+                placeholder={t('proposals.query_placeholder')}
                 className="flex-1 rounded border border-slate-300 px-3 py-2 text-sm"
               />
               <button type="submit" disabled={busy || !feedback.trim()} className="rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
-                Senden
+                {t('proposals.send')}
               </button>
             </form>
           ) : null}

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
 import { Navigate, Route, Routes } from 'react-router';
+import { useTranslation } from 'react-i18next';
 
 import { PortalLayout } from '@/components/PortalLayout';
 import { ensureAuthenticated } from '@/providers/authProvider';
@@ -44,6 +45,7 @@ const AbsencePage = lazy(() => import('@/pages/AbsencePage').then((m) => ({ defa
  * is in memory, navigation is synchronous.
  */
 function RequireAuth({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState<'pending' | 'authed' | 'anon'>(() =>
     getAccessToken() !== null ? 'authed' : 'pending',
   );
@@ -59,14 +61,15 @@ function RequireAuth({ children }: { children: ReactNode }) {
     };
   }, [status]);
 
-  if (status === 'pending') return <p className="p-6 text-sm text-slate-500">Lädt…</p>;
+  if (status === 'pending') return <p className="p-6 text-sm text-slate-500">{t('app.loading')}</p>;
   if (status === 'anon') return <Navigate to="/login" replace />;
   return <PortalLayout>{children}</PortalLayout>;
 }
 
 export default function App() {
+  const { t } = useTranslation();
   return (
-    <Suspense fallback={<p className="p-6 text-sm text-slate-500">Lädt…</p>}>
+    <Suspense fallback={<p className="p-6 text-sm text-slate-500">{t('app.loading')}</p>}>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/set-password" element={<SetPasswordPage />} />

@@ -1,27 +1,29 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import { FileText } from 'lucide-react';
 
 import { portalApi, type PortalDocument } from '@/lib/portal';
 
 export function DocumentsPage() {
+  const { t } = useTranslation();
   const [docs, setDocs] = useState<PortalDocument[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    portalApi.documents().then(setDocs).catch(() => setError('Dokumente konnten nicht geladen werden.'));
-  }, []);
+    portalApi.documents().then(setDocs).catch(() => setError(t('documents_list.load_error')));
+  }, [t]);
 
   return (
     <div className="space-y-4">
       <div>
-        <h1 className="text-xl font-semibold">Wissen &amp; Dateien</h1>
-        <p className="text-sm text-slate-500">Von uns freigegebene Dokumente.</p>
+        <h1 className="text-xl font-semibold">{t('documents_list.title')}</h1>
+        <p className="text-sm text-slate-500">{t('documents_list.subtitle')}</p>
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
-      {docs === null && !error ? <p className="text-sm text-slate-500">Lädt…</p> : null}
-      {docs && docs.length === 0 ? <p className="text-sm text-slate-500">Noch keine Dokumente.</p> : null}
+      {docs === null && !error ? <p className="text-sm text-slate-500">{t('app.loading')}</p> : null}
+      {docs && docs.length === 0 ? <p className="text-sm text-slate-500">{t('documents_list.empty')}</p> : null}
 
       <ul className="divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 bg-white">
         {(docs ?? []).map((d) => (
