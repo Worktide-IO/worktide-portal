@@ -439,6 +439,13 @@ export type PortalTicketSuggestion = {
   projectName: string | null;
 };
 
+export type PortalContactAbsence = {
+  id: string;
+  startsOn: string; // YYYY-MM-DD
+  endsOn: string;
+  note: string | null;
+};
+
 export type PortalMeetingType = {
   slug: string;
   title: string;
@@ -455,6 +462,15 @@ export const portalApi = {
     api
       .get<{ meetingTypes: PortalMeetingType[] }>('/portal/meeting-types')
       .then((r) => r.data.meetingTypes),
+
+  contactAbsences: () =>
+    api.get<{ absences: PortalContactAbsence[] }>('/portal/absences').then((r) => r.data.absences),
+
+  createContactAbsence: (input: { startsOn: string; endsOn: string; note?: string }) =>
+    api.post<PortalContactAbsence>('/portal/absences', input).then((r) => r.data),
+
+  deleteContactAbsence: (id: string) =>
+    api.delete<{ deleted: boolean }>(`/portal/absences/${id}`).then((r) => r.data),
 
   // Set the portal user's preferred display language (null = auto).
   setLanguage: (preferredLanguage: string | null) =>

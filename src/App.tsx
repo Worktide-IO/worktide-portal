@@ -34,6 +34,7 @@ const NotificationsPage = lazy(() => import('@/pages/NotificationsPage').then((m
 const SettingsPage = lazy(() => import('@/pages/SettingsPage').then((m) => ({ default: m.SettingsPage })));
 const NewslettersPage = lazy(() => import('@/pages/NewslettersPage').then((m) => ({ default: m.NewslettersPage })));
 const BookingBookPage = lazy(() => import('@/pages/BookingBookPage').then((m) => ({ default: m.BookingBookPage })));
+const AbsencePage = lazy(() => import('@/pages/AbsencePage').then((m) => ({ default: m.AbsencePage })));
 
 /** Gate authenticated routes; unauthenticated visitors go to /login. */
 /**
@@ -91,6 +92,7 @@ export default function App() {
         <Route path="/einstellungen" element={<RequireAuth><SettingsPage /></RequireAuth>} />
         <Route path="/newsletter" element={<RequireAuth><NewslettersPage /></RequireAuth>} />
         <Route path="/termin" element={<RequireAuth><BookingBookPage /></RequireAuth>} />
+        <Route path="/abwesenheit" element={<RequireAuth><AbsencePage /></RequireAuth>} />
         <Route path="*" element={<Navigate to="/tickets" replace />} />
       </Routes>
     </Suspense>
