@@ -8,6 +8,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import { SetPasswordPage } from '@/pages/SetPasswordPage';
 import { BookingPage } from '@/pages/BookingPage';
 import { BookingCancelPage } from '@/pages/BookingCancelPage';
+import { BookingReschedulePage } from '@/pages/BookingReschedulePage';
 
 // Authenticated feature pages are split into their own chunks so the initial
 // (login) load doesn't ship the whole app — notably the ~100 KB markdown stack
@@ -68,6 +69,7 @@ export default function App() {
         <Route path="/set-password" element={<SetPasswordPage />} />
         {/* Public, unauthenticated booking pages — no RequireAuth. */}
         <Route path="/book/cancel/:token" element={<BookingCancelPage />} />
+        <Route path="/book/reschedule/:token" element={<BookingReschedulePage />} />
         <Route path="/book/:slug" element={<BookingPage />} />
         <Route path="/tickets" element={<RequireAuth><TicketsListPage /></RequireAuth>} />
         <Route path="/tickets/new" element={<RequireAuth><NewTicketPage /></RequireAuth>} />

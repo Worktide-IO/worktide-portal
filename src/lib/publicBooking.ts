@@ -55,4 +55,16 @@ export const publicBooking = {
 
   cancel: (token: string) =>
     anon.post<{ success: boolean; cancelled: boolean }>(`/book/cancel/${token}`).then((r) => r.data),
+
+  rescheduleInfo: (token: string) =>
+    anon
+      .get<{ slug: string; title: string; start: string; timezone: string; durationMinutes: number; cancelled: boolean }>(
+        `/book/reschedule/${token}`,
+      )
+      .then((r) => r.data),
+
+  reschedule: (token: string, start: string) =>
+    anon
+      .post<{ success: boolean; cancelToken: string; start: string }>(`/book/reschedule/${token}`, { start })
+      .then((r) => r.data),
 };
