@@ -22,6 +22,10 @@ void i18n.use(initReactI18next).init({
   lng: browser === 'de' ? 'de' : 'en',
   fallbackLng: 'en',
   supportedLngs: ['en', 'de'],
+  // Semantic keys are flat dotted strings (e.g. `nav.tickets`) — treat the
+  // whole key literally instead of nesting on `.`.
+  keySeparator: false,
+  nsSeparator: false,
   interpolation: { escapeValue: false },
   returnEmptyString: false,
 });
