@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Bell, Check, Mail, MessageSquare } from 'lucide-react';
 
 import {
@@ -11,23 +12,26 @@ import {
 
 // Human labels for the notification types the backend knows about, in the
 // order we want them shown. Keys mirror the NotificationType enum.
-const TYPE_LABELS: { key: string; label: string; hint: string }[] = [
-  { key: 'comment', label: 'Kommentare & Antworten', hint: 'Neue Antworten auf Ihre Tickets' },
-  { key: 'task_assigned', label: 'Aufgaben', hint: 'Wenn Ihnen etwas zugewiesen wird' },
-  { key: 'mention', label: 'Erwähnungen', hint: 'Wenn Sie @erwähnt werden' },
-  { key: 'system', label: 'System & Monitoring', hint: 'Störungen und Wartungshinweise' },
-  { key: 'launch', label: 'Neues & Launches', hint: 'Neue Produkte und Leistungen' },
-  { key: 'ai', label: 'KI-Hinweise', hint: 'Vorschläge und Zusammenfassungen' },
+// Labels/hints live in the i18n catalog under settings.notif_type.<key>.* and
+// settings.frequency.<value>.* — resolved at render.
+const TYPE_LABELS: { key: string }[] = [
+  { key: 'comment' },
+  { key: 'task_assigned' },
+  { key: 'mention' },
+  { key: 'system' },
+  { key: 'launch' },
+  { key: 'ai' },
 ];
 
-const FREQUENCIES: { value: NotificationFrequency; label: string; hint: string }[] = [
-  { value: 'instant', label: 'Sofort', hint: 'E-Mail bei jedem Ereignis' },
-  { value: 'daily', label: 'Täglich', hint: 'Eine Zusammenfassung pro Tag' },
-  { value: 'weekly', label: 'Wöchentlich', hint: 'Eine Zusammenfassung pro Woche' },
+const FREQUENCIES: { value: NotificationFrequency }[] = [
+  { value: 'instant' },
+  { value: 'daily' },
+  { value: 'weekly' },
 ];
 
 /** Portal Einstellungen — notification delivery preferences (email channel). */
 export function SettingsPage() {
+  const { t } = useTranslation();
   const [prefs, setPrefs] = useState<NotificationChannelPrefs | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -137,8 +141,8 @@ export function SettingsPage() {
                   disabled={!emailOn}
                   className="size-4 accent-[var(--brand-primary)]"
                 />
-                <span className="text-sm text-slate-700">{f.label}</span>
-                <span className="text-xs text-slate-400">· {f.hint}</span>
+                <span className="text-sm text-slate-700">{t(`settings.frequency.${f.value}.label`)}</span>
+                <span className="text-xs text-slate-400">· {t(`settings.frequency.${f.value}.hint`)}</span>
               </label>
             ))}
           </div>
@@ -148,17 +152,17 @@ export function SettingsPage() {
         <div className={`border-b border-slate-100 px-4 py-4 ${emailOn ? '' : 'pointer-events-none opacity-40'}`}>
           <p className="mb-2 text-sm font-medium text-slate-800">Wobei möchten Sie E-Mails erhalten?</p>
           <div className="space-y-1.5">
-            {TYPE_LABELS.map((t) => (
-              <label key={t.key} className="flex cursor-pointer items-center gap-2.5">
+            {TYPE_LABELS.map((item) => (
+              <label key={item.key} className="flex cursor-pointer items-center gap-2.5">
                 <input
                   type="checkbox"
-                  checked={prefs.types[t.key] ?? true}
-                  onChange={(e) => toggleType(t.key, e.target.checked)}
+                  checked={prefs.types[item.key] ?? true}
+                  onChange={(e) => toggleType(item.key, e.target.checked)}
                   disabled={!emailOn}
                   className="size-4 accent-[var(--brand-primary)]"
                 />
-                <span className="text-sm text-slate-700">{t.label}</span>
-                <span className="text-xs text-slate-400">· {t.hint}</span>
+                <span className="text-sm text-slate-700">{t(`settings.notif_type.${item.key}.label`)}</span>
+                <span className="text-xs text-slate-400">· {t(`settings.notif_type.${item.key}.hint`)}</span>
               </label>
             ))}
           </div>

@@ -15,6 +15,7 @@ import {
   Share2,
   Ticket,
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router';
 
 import i18n from '@/i18n';
@@ -51,6 +52,7 @@ const NAV: NavItem[] = [
 ];
 
 export function PortalLayout({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [me, setMe] = useState<PortalMe | null>(null);
@@ -127,7 +129,7 @@ export function PortalLayout({ children }: { children: ReactNode }) {
               }}
               className="inline-flex cursor-pointer items-center gap-1.5 text-sm text-slate-600 hover:text-slate-900"
             >
-              <LogOut className="size-4" /> Abmelden
+              <LogOut className="size-4" /> {t('action.logout')}
             </button>
           </div>
         </div>
@@ -150,7 +152,7 @@ export function PortalLayout({ children }: { children: ReactNode }) {
                       className={`${base} ${active ? 'bg-[var(--brand-primary)] text-white' : 'text-slate-700 hover:bg-slate-100'}`}
                     >
                       <Icon className="size-4" />
-                      {item.label}
+                      {t('nav.' + item.key)}
                     </Link>
                   </li>
                 );
@@ -159,12 +161,12 @@ export function PortalLayout({ children }: { children: ReactNode }) {
                 <li key={item.key}>
                   <span
                     className={`${base} cursor-not-allowed text-slate-400`}
-                    title="Demnächst verfügbar"
+                    title={t('nav.coming_soon')}
                   >
                     <Icon className="size-4" />
-                    <span className="flex-1">{item.label}</span>
+                    <span className="flex-1">{t('nav.' + item.key)}</span>
                     <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-400">
-                      bald
+                      {t('nav.soon_badge')}
                     </span>
                   </span>
                 </li>
