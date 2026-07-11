@@ -439,8 +439,22 @@ export type PortalTicketSuggestion = {
   projectName: string | null;
 };
 
+export type PortalMeetingType = {
+  slug: string;
+  title: string;
+  description: string | null;
+  durationMinutes: number;
+  locationType: string; // video | phone | in_person
+  hostName: string | null;
+};
+
 export const portalApi = {
   me: () => api.get<PortalMe>('/portal/me').then((r) => r.data),
+
+  meetingTypes: () =>
+    api
+      .get<{ meetingTypes: PortalMeetingType[] }>('/portal/meeting-types')
+      .then((r) => r.data.meetingTypes),
 
   // Set the portal user's preferred display language (null = auto).
   setLanguage: (preferredLanguage: string | null) =>
