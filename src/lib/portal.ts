@@ -80,10 +80,14 @@ export type NotificationFrequency = 'instant' | 'daily' | 'weekly';
 
 export type NotificationChannelPrefs = {
   email: boolean;
+  chat: boolean;
   frequency: NotificationFrequency;
   types: Record<string, boolean>;
   quietHours: { start: string; end: string } | null;
 };
+
+export type ChatProvider = 'slack' | 'mattermost' | 'teams';
+export type ChatWebhookStatus = { provider: ChatProvider | null; enabled: boolean; configured: boolean };
 
 // Newsletter tree (opt-in/out per node). `subscribable` nodes carry a checkbox;
 // non-subscribable nodes are structural group headers (an ancestor of a granted
@@ -471,6 +475,18 @@ export const portalApi = {
 
   deleteContactAbsence: (id: string) =>
     api.delete<{ deleted: boolean }>(`/portal/absences/${id}`).then((r) => r.data),
+
+  chatWebhook: () =>
+    api.get<ChatWebhookStatus>('/portal/chat-webhook').then((r) => r.data),
+
+  saveChatWebhook: (input: { provider: ChatProvider; url: string; enabled: boolean }) =>
+    api.put<ChatWebhookStatus>('/portal/chat-webhook', input).then((r) => r.data),
+
+  deleteChatWebhook: () =>
+    api.delete<{ deleted: boolean }>('/portal/chat-webhook').then((r) => r.data),
+
+  testChatWebhook: () =>
+    api.post<{ sent: boolean }>('/portal/chat-webhook/test').then((r) => r.data),
 
   // Set the portal user's preferred display language (null = auto).
   setLanguage: (preferredLanguage: string | null) =>
