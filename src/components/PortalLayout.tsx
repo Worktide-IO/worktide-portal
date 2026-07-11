@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import {
   CalendarClock,
+  CalendarOff,
   ClipboardList,
   FileText,
   FolderKanban,
@@ -45,6 +46,7 @@ const NAV: NavItem[] = [
   { key: 'forms', label: 'Fragebögen', icon: ClipboardList, to: '/forms' },
   { key: 'newsletters', label: 'Newsletter', icon: Mail, to: '/newsletter' },
   { key: 'booking', label: 'Termin buchen', icon: CalendarClock, to: '/termin' },
+  { key: 'absence', label: 'Abwesenheit', icon: CalendarOff, to: '/abwesenheit' },
 ];
 
 export function PortalLayout({ children }: { children: ReactNode }) {
