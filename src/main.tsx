@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router';
 
 import App from '@/App';
 import '@/index.css';
+import '@/i18n'; // initialise i18next before the app renders
 import { BrandingProvider } from '@/providers/brandingProvider';
 import { applyBranding, readCachedBranding } from '@/lib/branding';
 

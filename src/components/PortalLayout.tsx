@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router';
 
+import i18n from '@/i18n';
 import { logout } from '@/providers/authProvider';
 import { portalApi, languageLabel, type PortalMe } from '@/lib/portal';
 import { NotificationBell } from '@/components/NotificationBell';
@@ -61,6 +62,15 @@ export function PortalLayout({ children }: { children: ReactNode }) {
       navigate('/login');
     });
   }, [navigate]);
+
+  // Drive the i18n language from the contact's stored preference (null =
+  // "Automatisch" → browser language). Runs on load + whenever the switcher
+  // optimistically updates `me.preferredLanguage`.
+  useEffect(() => {
+    if (!me) return;
+    const browser = navigator.language.slice(0, 2) === 'de' ? 'de' : 'en';
+    void i18n.changeLanguage(me.preferredLanguage ?? browser);
+  }, [me?.preferredLanguage, me]);
 
   const features = me?.features ?? {};
 
