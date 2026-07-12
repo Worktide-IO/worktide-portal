@@ -98,6 +98,9 @@ export type PortalNewsletterNode = {
   title: string;
   description: string | null;
   translations?: TranslationsMap | null;
+  icon: string;
+  color: string;
+  slug: string | null;
   // Estimated send cadence: raw enum value + a server-localised label (null = not stated).
   estimatedFrequency: string | null;
   estimatedFrequencyLabel: string | null;
