@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router';
 import { ArrowLeft, Download, Paperclip } from 'lucide-react';
@@ -176,7 +177,7 @@ export function TicketDetailPage() {
           <div key={c.id} className="rounded-lg border border-slate-200 bg-white p-3">
             <div className="flex items-center justify-between text-xs text-slate-500">
               <span className="font-medium text-slate-600">{c.author}</span>
-              <span>{new Date(c.createdAt).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+              <span>{new Date(c.createdAt).toLocaleString(intlLocale(), { dateStyle: 'medium', timeStyle: 'short' })}</span>
             </div>
             <p className="mt-1 whitespace-pre-wrap text-sm">{c.content}</p>
           </div>

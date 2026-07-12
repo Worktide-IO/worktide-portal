@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { FileText } from 'lucide-react';
@@ -39,7 +40,7 @@ export function DocumentsPage() {
                 </div>
               </div>
               <span className="shrink-0 text-xs text-slate-400">
-                {new Date(d.updatedAt).toLocaleDateString('de-DE', { dateStyle: 'medium' })}
+                {new Date(d.updatedAt).toLocaleDateString(intlLocale(), { dateStyle: 'medium' })}
               </span>
             </Link>
           </li>

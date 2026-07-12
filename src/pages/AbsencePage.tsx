@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import i18n from '@/i18n';
+import { intlLocale } from '@/lib/intl';
 import { useTranslation } from 'react-i18next';
 import { CalendarOff, Plus, Trash2 } from 'lucide-react';
 
@@ -28,8 +30,8 @@ export function AbsencePage() {
   useEffect(load, [load]);
 
   const dateFmt = useMemo(
-    () => new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-    [],
+    () => new Intl.DateTimeFormat(intlLocale(), { day: '2-digit', month: '2-digit', year: 'numeric' }),
+    [i18n.language],
   );
   const fmtRange = (a: string, b: string) =>
     a === b ? dateFmt.format(new Date(a)) : `${dateFmt.format(new Date(a))} – ${dateFmt.format(new Date(b))}`;

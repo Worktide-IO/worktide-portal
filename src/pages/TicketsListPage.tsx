@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Plus } from 'lucide-react';
@@ -106,7 +107,7 @@ export function TicketsListPage() {
                   <SlaBadge sla={t.sla} />
                   <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600">{t.statusLabel}</span>
                   <span className="hidden w-20 text-right text-xs text-slate-400 sm:inline" title={translate('tickets_list.last_updated')}>
-                    {new Date(t.updatedAt).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                    {new Date(t.updatedAt).toLocaleDateString(intlLocale(), { day: '2-digit', month: '2-digit', year: '2-digit' })}
                   </span>
                 </div>
               </Link>
