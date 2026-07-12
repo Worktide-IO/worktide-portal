@@ -342,6 +342,8 @@ export type FormBlock = {
   type: string;
   label: string;
   labelI18n?: Record<string, string>; // per-locale label overrides
+  optionsI18n?: Record<string, string[]>; // per-locale option labels (index-aligned with options)
+  rowsI18n?: Record<string, string[]>; // per-locale matrix row labels (index-aligned with rows)
   required: boolean;
   options: string[];
   placeholder: string | null;

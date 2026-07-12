@@ -327,9 +327,14 @@ function CalcSummary({ calc }: { calc: Record<string, number> }) {
 }
 
 function Field({ block, value, onChange }: { block: FormBlock; value: unknown; onChange: (v: unknown) => void }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const labelOf = useLocalizeMap();
   const blockLabel = labelOf(block.labelI18n, block.label);
+  // Option/row LABELS localize by index; the submitted value stays the base
+  // option/row string, so validation + logic are unaffected.
+  const lang = i18n.language.slice(0, 2);
+  const optLabel = (o: string, i: number) => block.optionsI18n?.[lang]?.[i] ?? o;
+  const rowLabel = (r: string, i: number) => block.rowsI18n?.[lang]?.[i] ?? r;
   const label = (
     <span className="text-sm font-medium">
       {blockLabel}
@@ -346,10 +351,10 @@ function Field({ block, value, onChange }: { block: FormBlock; value: unknown; o
       <div>
         {label}
         <div className="mt-1 flex flex-wrap gap-3">
-          {block.options.map((o) => (
+          {block.options.map((o, i) => (
             <label key={o} className="flex items-center gap-1.5 text-sm">
               <input type="checkbox" checked={selected.includes(o)} onChange={() => toggle(o)} />
-              {o}
+              {optLabel(o, i)}
             </label>
           ))}
         </div>
@@ -419,17 +424,17 @@ function Field({ block, value, onChange }: { block: FormBlock; value: unknown; o
             <thead>
               <tr>
                 <th />
-                {block.options.map((o) => (
+                {block.options.map((o, i) => (
                   <th key={o} className="px-2 pb-1 text-center text-xs font-normal text-slate-500">
-                    {o}
+                    {optLabel(o, i)}
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {rows.map((row, ri) => (
                 <tr key={row} className="border-t border-slate-100">
-                  <td className="py-1.5 pr-2 text-slate-700">{row}</td>
+                  <td className="py-1.5 pr-2 text-slate-700">{rowLabel(row, ri)}</td>
                   {block.options.map((o) => (
                     <td key={o} className="text-center">
                       <input type="radio" name={`${block.id}-${row}`} checked={answer[row] === o} onChange={() => setRow(row, o)} />
@@ -459,9 +464,9 @@ function Field({ block, value, onChange }: { block: FormBlock; value: unknown; o
         {label}
         <select required={block.required} value={str} onChange={(e) => onChange(e.target.value)} className={`${inputClass} bg-white`}>
           <option value="">{t('form_fill.please_select')}</option>
-          {block.options.map((o) => (
+          {block.options.map((o, i) => (
             <option key={o} value={o}>
-              {o}
+              {optLabel(o, i)}
             </option>
           ))}
         </select>
