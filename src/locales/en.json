@@ -235,6 +235,7 @@
   "newsletters.title": "Newsletter",
   "newsletters.subtitle": "Choose what we may keep you up to date about.",
   "newsletters.empty": "No newsletters are currently enabled for you.",
+  "newsletters.consent_notice": "Turning on a newsletter is your consent to receive the related emails. We record when and how you gave that consent. You can unsubscribe again at any time.",
   "newsletter_unsub.invalid_link": "This unsubscribe link is invalid.",
   "newsletter_unsub.done": "You have been unsubscribed from this newsletter.",
   "newsletter_unsub.confirm": "Do you want to unsubscribe from this newsletter?",

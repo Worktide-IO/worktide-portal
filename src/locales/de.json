@@ -235,6 +235,7 @@
   "newsletters.title": "Newsletter",
   "newsletters.subtitle": "Wählen Sie, worüber wir Sie auf dem Laufenden halten dürfen.",
   "newsletters.empty": "Zurzeit sind keine Newsletter für Sie freigeschaltet.",
+  "newsletters.consent_notice": "Wenn Sie einen Newsletter aktivieren, stimmen Sie dem Erhalt der zugehörigen E-Mails zu. Wir halten Zeitpunkt und Art Ihrer Einwilligung fest. Sie können jederzeit wieder abbestellen.",
   "newsletter_unsub.invalid_link": "Dieser Abmelde-Link ist ungültig.",
   "newsletter_unsub.done": "Sie wurden von diesem Newsletter abgemeldet.",
   "newsletter_unsub.confirm": "Möchten Sie diesen Newsletter abbestellen?",
