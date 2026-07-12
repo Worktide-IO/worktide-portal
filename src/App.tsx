@@ -26,6 +26,7 @@ const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ 
 const AgreementsPage = lazy(() => import('@/pages/AgreementsPage').then((m) => ({ default: m.AgreementsPage })));
 const IdeasPage = lazy(() => import('@/pages/IdeasPage').then((m) => ({ default: m.IdeasPage })));
 const DocumentsPage = lazy(() => import('@/pages/DocumentsPage').then((m) => ({ default: m.DocumentsPage })));
+const FilesPage = lazy(() => import('@/pages/FilesPage').then((m) => ({ default: m.FilesPage })));
 const DocumentDetailPage = lazy(() => import('@/pages/DocumentDetailPage').then((m) => ({ default: m.DocumentDetailPage })));
 const FormsPage = lazy(() => import('@/pages/FormsPage').then((m) => ({ default: m.FormsPage })));
 const FormFillPage = lazy(() => import('@/pages/FormFillPage').then((m) => ({ default: m.FormFillPage })));
@@ -87,6 +88,7 @@ export default function App() {
         <Route path="/ideas" element={<RequireAuth><IdeasPage /></RequireAuth>} />
         <Route path="/documents" element={<RequireAuth><DocumentsPage /></RequireAuth>} />
         <Route path="/documents/:id" element={<RequireAuth><DocumentDetailPage /></RequireAuth>} />
+        <Route path="/dateien" element={<RequireAuth><FilesPage /></RequireAuth>} />
         <Route path="/forms" element={<RequireAuth><FormsPage /></RequireAuth>} />
         <Route path="/forms/:id" element={<RequireAuth><FormFillPage /></RequireAuth>} />
         <Route path="/proposals" element={<RequireAuth><ProposalsPage /></RequireAuth>} />

@@ -466,6 +466,20 @@ export type PortalMeetingType = {
   hostName: string | null;
 };
 
+export type PortalFolder = { id: string; name: string };
+export type PortalFileItem = {
+  id: string;
+  name: string;
+  mimeType?: string | null;
+  size?: number | null;
+  uploadedAt?: string | null;
+};
+export type PortalFilesResponse = {
+  folder: PortalFolder | null;
+  folders: PortalFolder[];
+  files: PortalFileItem[];
+};
+
 export const portalApi = {
   me: () => api.get<PortalMe>('/portal/me').then((r) => r.data),
 
@@ -587,6 +601,25 @@ export const portalApi = {
     api
       .get<Blob>(`/portal/tickets/${ticketId}/attachments/${fileId}/content`, { responseType: 'blob' })
       .then((r) => r.data),
+
+  // Shared customer file area (folders + files scoped to the caller's customer
+  // server-side). `folderId` = null/undefined → the customer's root.
+  files: (folderId?: string) =>
+    api
+      .get<PortalFilesResponse>('/portal/files', { params: folderId ? { folder: folderId } : {} })
+      .then((r) => r.data),
+
+  uploadPortalFile: (parentId: string | null, file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (parentId) {
+      form.append('parent', parentId);
+    }
+    return api.post<PortalFileItem>('/portal/files', form).then((r) => r.data);
+  },
+
+  downloadPortalFile: (fileId: string) =>
+    api.get<Blob>(`/portal/files/${fileId}/content`, { responseType: 'blob' }).then((r) => r.data),
 
   systems: (days?: number) =>
     api
