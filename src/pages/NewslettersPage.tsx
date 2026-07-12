@@ -3,6 +3,7 @@ import { Mail } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { portalApi, type PortalNewsletterNode } from '@/lib/portal';
+import { useLocalize } from '@/lib/localize';
 
 /**
  * Portal newsletter subscriptions — the customer's granted newsletter tree with
@@ -83,6 +84,7 @@ function NewsletterRow({
   onToggle: (n: PortalNewsletterNode) => void;
   first: boolean;
 }) {
+  const localize = useLocalize();
   const pad = { paddingLeft: 16 + depth * 20 };
   return (
     <>
@@ -99,8 +101,8 @@ function NewsletterRow({
             className="mt-0.5 size-4 shrink-0 accent-[var(--brand-primary)]"
           />
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-medium text-slate-800">{node.title}</span>
-            {node.description ? <span className="mt-0.5 block text-xs text-slate-500">{node.description}</span> : null}
+            <span className="block text-sm font-medium text-slate-800">{localize(node, 'title')}</span>
+            {node.description ? <span className="mt-0.5 block text-xs text-slate-500">{localize(node, 'description')}</span> : null}
           </span>
         </label>
       ) : (
@@ -108,7 +110,7 @@ function NewsletterRow({
           className={`px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400 ${first ? '' : 'border-t border-slate-100'}`}
           style={pad}
         >
-          {node.title}
+          {localize(node, 'title')}
         </div>
       )}
       {node.children.map((child) => (

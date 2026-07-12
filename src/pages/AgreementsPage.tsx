@@ -11,6 +11,7 @@ import {
   type PortalSubscription,
 } from '@/lib/portal';
 import i18n from '@/i18n';
+import { useLocalize } from '@/lib/localize';
 
 const INVOICE_STATUS_CLASSES: Record<string, string> = {
   paid: 'bg-green-100 text-green-700',
@@ -48,6 +49,7 @@ function formatPrice(cents: number, currency: string): string {
 
 function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: PortalAgreement) => void }) {
   const { t } = useTranslation();
+  const localize = useLocalize();
   const valid = formatDate(a.validUntil);
   const signed = formatDate(a.signedOn);
   // Only nudge on open offers (a signed contract's end date isn't a "hurry" signal).
@@ -93,7 +95,7 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           {a.reference ? <div className="font-mono text-xs text-slate-400">{a.reference}</div> : null}
-          <div className="font-medium">{a.type}</div>
+          <div className="font-medium">{localize(a, 'type')}</div>
         </div>
         <span
           className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${

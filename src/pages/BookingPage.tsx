@@ -8,6 +8,7 @@ import { BrandMark } from '@/components/BrandMark';
 import { Footer } from '@/components/Footer';
 import i18n from '@/i18n';
 import { publicBooking, type BookingMeetingType } from '@/lib/publicBooking';
+import { useLocalize } from '@/lib/localize';
 
 const INVITEE_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -32,6 +33,7 @@ function locationLabel(type: string): string {
  */
 export function BookingPage() {
   const { t } = useTranslation();
+  const localize = useLocalize();
   const { slug = '' } = useParams();
   const [type, setType] = useState<BookingMeetingType | null>(null);
   const [notFound, setNotFound] = useState(false);
@@ -114,13 +116,13 @@ export function BookingPage() {
         ) : (
           <div className="overflow-hidden rounded-xl border border-slate-200 bg-white">
             <div className="border-b border-slate-100 px-6 py-5">
-              <h1 className="text-xl font-semibold text-slate-900">{type.title}</h1>
+              <h1 className="text-xl font-semibold text-slate-900">{localize(type, 'title')}</h1>
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
                 <span className="inline-flex items-center gap-1.5"><Clock className="size-4" /> {t('booking_book.duration_minutes', { count: type.durationMinutes })}</span>
                 <span className="inline-flex items-center gap-1.5"><MapPin className="size-4" /> {locationLabel(type.locationType)}</span>
                 {type.hostName ? <span className="inline-flex items-center gap-1.5"><User className="size-4" /> {type.hostName}</span> : null}
               </div>
-              {type.description ? <p className="mt-3 text-sm text-slate-600">{type.description}</p> : null}
+              {type.description ? <p className="mt-3 text-sm text-slate-600">{localize(type, 'description')}</p> : null}
             </div>
 
             {booked ? (
