@@ -125,7 +125,7 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
               <li key={i} className="flex items-baseline justify-between gap-3 py-1.5 first:pt-0 last:pb-0">
                 <span className="min-w-0 text-slate-700">
                   {li.quantity !== 1 ? <span className="text-slate-400">{li.quantity}× </span> : null}
-                  {li.description}
+                  {localize(li, 'description')}
                 </span>
                 <span className="shrink-0 tabular-nums text-slate-600">
                   {formatPrice(li.amountCents, a.currency)}
