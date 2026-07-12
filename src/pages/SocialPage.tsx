@@ -6,11 +6,6 @@ import { Check, ChevronLeft, ChevronRight, Clock, Image, MessageCircle, Sparkles
 import { portalApi, type PortalSocialPost } from '@/lib/portal';
 import { safeUrl } from '@/lib/safeUrl';
 
-const WEEKDAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-const MONTHS = [
-  'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember',
-];
 
 /** A post's calendar date: its scheduled slot, else when it was published. */
 function postDate(p: PortalSocialPost): Date | null {
@@ -125,7 +120,7 @@ function ContentCalendar({ posts }: { posts: PortalSocialPost[] }) {
     <div className="rounded-lg border border-slate-200 bg-white p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="text-sm font-semibold text-slate-700">
-          {t('social.content_calendar')} · {MONTHS[view.month]} {view.year}
+          {t('social.content_calendar')} · {new Date(view.year, view.month, 1).toLocaleDateString(intlLocale(), { month: 'long', year: 'numeric' })}
         </div>
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => shift(-1)} className="rounded p-1 text-slate-500 hover:bg-slate-100" aria-label={t('social.prev_month')}>
@@ -138,7 +133,7 @@ function ContentCalendar({ posts }: { posts: PortalSocialPost[] }) {
       </div>
 
       <div className="grid grid-cols-7 gap-1 text-center text-xs text-slate-400">
-        {WEEKDAYS.map((w) => (
+        {Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 1 + i).toLocaleDateString(intlLocale(), { weekday: 'short' })).map((w) => (
           <div key={w} className="pb-1">{w}</div>
         ))}
         {cells.map((day, i) => {

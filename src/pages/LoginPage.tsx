@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 
 import { login } from '@/providers/authProvider';
@@ -6,6 +7,7 @@ import { useBranding } from '@/providers/brandingProvider';
 import { Footer } from '@/components/Footer';
 
 export function LoginPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +23,7 @@ export function LoginPage() {
       await login(email, password);
       navigate('/tickets');
     } catch {
-      setError('Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.');
+      setError(t('login.failed'));
     } finally {
       setBusy(false);
     }

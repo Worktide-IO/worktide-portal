@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { intlLocale } from '@/lib/intl';
 import { useNavigate } from 'react-router';
 import {
@@ -41,6 +42,7 @@ function relativeTime(iso: string): string {
 
 /** Portal Benachrichtigungen page — the whole inbox, paged via "Mehr laden". */
 export function NotificationsPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [items, setItems] = useState<PortalNotification[]>([]);
   const [unread, setUnread] = useState(0);
@@ -167,7 +169,7 @@ export function NotificationsPage() {
             disabled={loading}
             className="rounded-md border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-40"
           >
-            {loading ? 'Lädt…' : 'Mehr laden'}
+            {loading ? t('app.loading') : t('common.load_more')}
           </button>
         </div>
       ) : null}
