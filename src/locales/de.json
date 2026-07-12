@@ -372,5 +372,7 @@
   "tickets_list.waiting_for_me": "Wartet auf mich",
   "tickets_list.empty": "Noch keine Tickets.",
   "tickets_list.empty_view": "Keine Tickets in dieser Ansicht.",
-  "tickets_list.last_updated": "Zuletzt aktualisiert"
+  "tickets_list.last_updated": "Zuletzt aktualisiert",
+  "login.failed": "Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.",
+  "common.load_more": "Mehr laden"
 }
