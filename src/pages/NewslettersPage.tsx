@@ -61,11 +61,14 @@ export function NewslettersPage() {
           {t('newsletters.empty')}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-          {tree!.map((node, i) => (
-            <NewsletterRow key={node.id} node={node} depth={0} busy={busy} onToggle={toggle} first={i === 0} />
-          ))}
-        </div>
+        <>
+          <div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
+            {tree!.map((node, i) => (
+              <NewsletterRow key={node.id} node={node} depth={0} busy={busy} onToggle={toggle} first={i === 0} />
+            ))}
+          </div>
+          <p className="mt-3 text-xs text-slate-400">{t('newsletters.consent_notice')}</p>
+        </>
       )}
     </div>
   );
@@ -101,7 +104,14 @@ function NewsletterRow({
             className="mt-0.5 size-4 shrink-0 accent-[var(--brand-primary)]"
           />
           <span className="min-w-0 flex-1">
-            <span className="block text-sm font-medium text-slate-800">{localize(node, 'title')}</span>
+            <span className="flex items-center gap-2">
+              <span className="text-sm font-medium text-slate-800">{localize(node, 'title')}</span>
+              {node.estimatedFrequencyLabel ? (
+                <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
+                  {node.estimatedFrequencyLabel}
+                </span>
+              ) : null}
+            </span>
             {node.description ? <span className="mt-0.5 block text-xs text-slate-500">{localize(node, 'description')}</span> : null}
           </span>
         </label>
