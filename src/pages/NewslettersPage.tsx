@@ -25,23 +25,17 @@ export function NewslettersPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Immutably flip `subscribed` for one node id anywhere in the tree.
-  function setSubscribed(nodes: PortalNewsletterNode[], id: string, value: boolean): PortalNewsletterNode[] {
-    return nodes.map((n) => {
-      if (n.id === id) return { ...n, subscribed: value };
-      if (n.children.length) return { ...n, children: setSubscribed(n.children, id, value) };
-      return n;
-    });
-  }
-
   function toggle(node: PortalNewsletterNode) {
     if (busy[node.id]) return;
-    const next = !node.subscribed;
+    // "On" covers confirmed AND pending (double opt-in) — either way, toggling
+    // off unsubscribes. Reload after the call so the result (subscribed vs.
+    // awaiting-confirmation) is reflected accurately rather than guessed.
+    const on = node.subscribed || node.pending;
     setBusy((b) => ({ ...b, [node.id]: true }));
-    setTree((t) => (t ? setSubscribed(t, node.id, next) : t)); // optimistic
-    const call = next ? portalApi.subscribeNewsletter(node.id) : portalApi.unsubscribeNewsletter(node.id);
+    const call = on ? portalApi.unsubscribeNewsletter(node.id) : portalApi.subscribeNewsletter(node.id);
     call
-      .catch(() => setTree((t) => (t ? setSubscribed(t, node.id, !next) : t))) // revert
+      .then(() => portalApi.newsletters().then(setTree))
+      .catch(() => undefined)
       .finally(() => setBusy((b) => ({ ...b, [node.id]: false })));
   }
 
@@ -100,7 +94,7 @@ function NewsletterRow({
         >
           <input
             type="checkbox"
-            checked={node.subscribed}
+            checked={node.subscribed || node.pending}
             disabled={busy[node.id]}
             onChange={() => onToggle(node)}
             className="mt-0.5 size-4 shrink-0 accent-[var(--brand-primary)]"
@@ -113,6 +107,11 @@ function NewsletterRow({
                 style={{ color: node.color || '#94a3b8' }}
               />
               <span className="text-sm font-medium text-slate-800">{localize(node, 'title')}</span>
+              {node.pending ? (
+                <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+                  {t('newsletters.pending_badge')}
+                </span>
+              ) : null}
               {node.estimatedFrequencyLabel ? (
                 <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
                   {node.estimatedFrequencyLabel}
@@ -120,6 +119,9 @@ function NewsletterRow({
               ) : null}
             </span>
             {node.description ? <span className="mt-0.5 block text-xs text-slate-500">{localize(node, 'description')}</span> : null}
+            {node.pending ? (
+              <span className="mt-0.5 block text-xs text-amber-600">{t('newsletters.pending_hint')}</span>
+            ) : null}
           </span>
         </label>
       ) : node.mandatory ? (

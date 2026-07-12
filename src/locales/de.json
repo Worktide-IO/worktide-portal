@@ -237,6 +237,8 @@
   "newsletters.empty": "Zurzeit sind keine Newsletter für Sie freigeschaltet.",
   "newsletters.consent_notice": "Wenn Sie einen Newsletter aktivieren, stimmen Sie dem Erhalt der zugehörigen E-Mails zu. Wir halten Zeitpunkt und Art Ihrer Einwilligung fest. Sie können jederzeit wieder abbestellen.",
   "newsletters.mandatory_badge": "Pflicht",
+  "newsletters.pending_badge": "Bestätigung ausstehend",
+  "newsletters.pending_hint": "Wir haben Ihnen eine Bestätigungs-E-Mail geschickt. Bitte bestätigen Sie den Link, damit wir Ihnen etwas senden dürfen.",
   "newsletter_unsub.invalid_link": "Dieser Abmelde-Link ist ungültig.",
   "newsletter_unsub.done": "Sie wurden von diesem Newsletter abgemeldet.",
   "newsletter_unsub.confirm": "Möchten Sie diesen Newsletter abbestellen?",

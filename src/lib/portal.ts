@@ -108,6 +108,8 @@ export type PortalNewsletterNode = {
   // Mandatory/transactional node: always on, no toggle (locked checkbox in the UI).
   mandatory: boolean;
   subscribed: boolean;
+  // Opted in but awaiting a double-opt-in confirmation click (email link).
+  pending: boolean;
   children: PortalNewsletterNode[];
 };
 
