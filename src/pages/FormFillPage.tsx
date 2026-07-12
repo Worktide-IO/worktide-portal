@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Save, Star } from 'lucide-react';
 
 import { portalApi, type FormBlock, type FormSchema, type PortalFormDetail } from '@/lib/portal';
 import { evaluateForm, INPUT_TYPES } from '@/lib/formLogic';
+import { useLocalize } from '@/lib/localize';
 
 const inputClass = 'mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm';
 
@@ -82,6 +83,7 @@ function pageState(blocks: FormBlock[], activeKeys: Set<string>, values: Record<
 
 export function FormFillPage() {
   const { t } = useTranslation();
+  const localize = useLocalize();
   const { id = '' } = useParams();
   const [form, setForm] = useState<PortalFormDetail | null>(null);
   const [values, setValues] = useState<Record<string, unknown>>({});
@@ -157,7 +159,9 @@ export function FormFillPage() {
     setError(null);
     try {
       const res = await portalApi.submitForm(id, values);
-      setDone(res.message ?? t('form_fill.thank_you'));
+      // Prefer the locale-resolved success message from the loaded form; the
+      // submit response only carries the raw base-language message.
+      setDone((form && localize(form, 'successMessage')) || res.message || t('form_fill.thank_you'));
     } catch (err) {
       const data = (err as { response?: { data?: { errors?: Record<string, string> } } })?.response?.data;
       setError(
@@ -201,8 +205,8 @@ export function FormFillPage() {
       </Link>
 
       <div>
-        <h1 className="text-xl font-semibold">{form.title}</h1>
-        {form.description ? <p className="mt-1 text-sm text-slate-500">{form.description}</p> : null}
+        <h1 className="text-xl font-semibold">{localize(form, 'title')}</h1>
+        {form.description ? <p className="mt-1 text-sm text-slate-500">{localize(form, 'description')}</p> : null}
         <div className="mt-3 flex items-center gap-3">
           <div className="h-1.5 w-40 overflow-hidden rounded-full bg-slate-100">
             <div className="h-full rounded-full bg-slate-800" style={{ width: `${progress}%` }} />

@@ -1,4 +1,5 @@
 import { api } from '@/lib/api';
+import type { TranslationsMap } from '@/lib/localize';
 
 // Curated DTOs the backend's /v1/portal/* endpoints return (see
 // docs/PLAN.md + docs/RECONCILIATION.md). Deliberately NARROW — no internal
@@ -96,6 +97,7 @@ export type PortalNewsletterNode = {
   id: string;
   title: string;
   description: string | null;
+  translations?: TranslationsMap | null;
   subscribable: boolean;
   subscribed: boolean;
   children: PortalNewsletterNode[];
@@ -191,6 +193,8 @@ export type PortalAgreementLineItem = {
 export type PortalAgreement = {
   id: string;
   type: string;
+  // Per-locale overrides for `type` (the agreement type's name), keyed 'type'.
+  translations?: TranslationsMap | null;
   typeSlug: string;
   status: string; // draft | in_negotiation | signed | expired | superseded | terminated
   statusLabel: string;
@@ -368,6 +372,7 @@ export type PortalFormSummary = {
   id: string;
   title: string;
   description: string | null;
+  translations?: TranslationsMap | null;
   fieldCount: number;
 };
 
@@ -376,6 +381,7 @@ export type PortalFormDetail = {
   title: string;
   description: string | null;
   successMessage: string | null;
+  translations?: TranslationsMap | null;
   schema: FormSchema | null;
   fields: PortalFormField[];
   draft: Record<string, unknown> | null;
@@ -454,6 +460,7 @@ export type PortalMeetingType = {
   slug: string;
   title: string;
   description: string | null;
+  translations?: TranslationsMap | null;
   durationMinutes: number;
   locationType: string; // video | phone | in_person
   hostName: string | null;

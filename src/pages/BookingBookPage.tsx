@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarCheck, Clock, MapPin, User } from 'lucide-react';
 
 import { portalApi, type PortalMe, type PortalMeetingType } from '@/lib/portal';
 import { publicBooking } from '@/lib/publicBooking';
+import { useLocalize } from '@/lib/localize';
 import i18n from '@/i18n';
 
 const INVITEE_TZ = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -31,6 +32,7 @@ function locationLabel(type: string): string {
  */
 export function BookingBookPage() {
   const { t: translate } = useTranslation();
+  const localize = useLocalize();
   const [me, setMe] = useState<PortalMe | null>(null);
   const [types, setTypes] = useState<PortalMeetingType[]>([]);
   const [slug, setSlug] = useState<string | null>(null);
@@ -133,13 +135,13 @@ export function BookingBookPage() {
                 onClick={() => setSlug(t.slug)}
                 className="rounded-xl border border-slate-200 bg-white p-4 text-left transition hover:border-[var(--brand-primary)]"
               >
-                <div className="font-semibold text-slate-900">{t.title}</div>
+                <div className="font-semibold text-slate-900">{localize(t, 'title')}</div>
                 <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-slate-500">
                   <span className="inline-flex items-center gap-1"><Clock className="size-3.5" /> {translate('booking_book.duration_minutes', { count: t.durationMinutes })}</span>
                   <span className="inline-flex items-center gap-1"><MapPin className="size-3.5" /> {locationLabel(t.locationType)}</span>
                   {t.hostName ? <span className="inline-flex items-center gap-1"><User className="size-3.5" /> {t.hostName}</span> : null}
                 </div>
-                {t.description ? <p className="mt-2 text-sm text-slate-600">{t.description}</p> : null}
+                {t.description ? <p className="mt-2 text-sm text-slate-600">{localize(t, 'description')}</p> : null}
               </button>
             ))}
           </div>
@@ -150,7 +152,7 @@ export function BookingBookPage() {
             <button type="button" onClick={reset} className="mb-3 inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800">
               <ArrowLeft className="size-4" /> {translate('booking_book.other_type')}
             </button>
-            <h2 className="text-lg font-semibold text-slate-900">{type?.title}</h2>
+            <h2 className="text-lg font-semibold text-slate-900">{localize(type, 'title')}</h2>
             {type ? (
               <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
                 <span className="inline-flex items-center gap-1.5"><Clock className="size-4" /> {translate('booking_book.duration_minutes', { count: type.durationMinutes })}</span>

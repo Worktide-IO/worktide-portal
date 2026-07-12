@@ -4,9 +4,11 @@ import { ClipboardList } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { portalApi, type PortalFormSummary } from '@/lib/portal';
+import { useLocalize } from '@/lib/localize';
 
 export function FormsPage() {
   const { t } = useTranslation();
+  const localize = useLocalize();
   const [forms, setForms] = useState<PortalFormSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,8 +33,8 @@ export function FormsPage() {
             <Link to={`/forms/${f.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
               <ClipboardList className="size-4 shrink-0 text-slate-400" />
               <div className="min-w-0 flex-1">
-                <div className="font-medium">{f.title}</div>
-                {f.description ? <div className="text-xs text-slate-500">{f.description}</div> : null}
+                <div className="font-medium">{localize(f, 'title')}</div>
+                {f.description ? <div className="text-xs text-slate-500">{localize(f, 'description')}</div> : null}
               </div>
               <span className="shrink-0 text-xs text-slate-400">{t('forms.field_count', { count: f.fieldCount })}</span>
             </Link>

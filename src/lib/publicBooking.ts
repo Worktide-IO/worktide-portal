@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import { API_BASE } from '@/lib/api';
+import type { TranslationsMap } from '@/lib/localize';
 
 /**
  * Anonymous client for the public booking endpoints (`/v1/book/*`). Uses a bare
@@ -14,6 +15,7 @@ export type BookingMeetingType = {
   slug: string;
   title: string;
   description: string | null;
+  translations?: TranslationsMap | null;
   durationMinutes: number;
   locationType: string; // video | phone | in_person
   timezone: string;
