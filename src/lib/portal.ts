@@ -187,6 +187,7 @@ export type PortalSystemIncident = {
 // subscriptions.
 export type PortalAgreementLineItem = {
   description: string;
+  translations?: TranslationsMap | null; // per-locale `description` overrides
   quantity: number;
   unitAmountCents: number;
   amountCents: number; // line total = quantity × unit
