@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Clock, Server, Ticket, Wallet } from 'lucide-react';
@@ -8,7 +9,7 @@ import { portalApi, type PortalDashboard } from '@/lib/portal';
 
 /** Minutes → German decimal hours, e.g. 1512 → "25,2". */
 function hours(min: number): string {
-  return (min / 60).toLocaleString('de-DE', { maximumFractionDigits: 1 });
+  return (min / 60).toLocaleString(intlLocale(), { maximumFractionDigits: 1 });
 }
 
 /** ISO → short German relative time ("vor 20 Min.", "gestern", …). */
@@ -21,7 +22,7 @@ function relativeTime(iso: string): string {
   const diffD = Math.round(diffH / 24);
   if (diffD === 1) return i18n.t('dashboard.rel_yesterday');
   if (diffD < 7) return i18n.t('dashboard.rel_days', { count: diffD });
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+  return new Date(iso).toLocaleDateString(intlLocale(), { day: '2-digit', month: 'short' });
 }
 
 export function DashboardPage() {

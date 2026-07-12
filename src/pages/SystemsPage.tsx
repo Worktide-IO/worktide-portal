@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, ExternalLink, Server, Wrench } from 'lucide-react';
 
@@ -40,7 +41,7 @@ function barColor(pct: number): string {
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
+  return new Date(iso).toLocaleDateString(intlLocale(), { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
 // Selectable ranges — must match the backend's ALLOWED_WINDOWS.

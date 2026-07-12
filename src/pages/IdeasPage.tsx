@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { ChevronUp, Lightbulb, MessagesSquare, Plus, Send, Sparkles, Target } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -10,7 +11,7 @@ import {
 } from '@/lib/portal';
 
 function formatWhen(iso: string): string {
-  return new Date(iso).toLocaleString('de-DE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+  return new Date(iso).toLocaleString(intlLocale(), { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
 const ORIGIN_DOT: Record<string, string> = {

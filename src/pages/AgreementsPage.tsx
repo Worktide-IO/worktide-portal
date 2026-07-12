@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { useTranslation } from 'react-i18next';
 import { FileCheck2, FileText, MessageCircleQuestion, PenLine, Receipt, Repeat } from 'lucide-react';
 
@@ -21,7 +22,7 @@ const INVOICE_STATUS_CLASSES: Record<string, string> = {
 const OFFER_STATUSES = new Set(['draft', 'in_negotiation']);
 
 function formatDate(iso: string | null): string | null {
-  return iso ? new Date(iso).toLocaleDateString('de-DE', { dateStyle: 'medium' }) : null;
+  return iso ? new Date(iso).toLocaleDateString(intlLocale(), { dateStyle: 'medium' }) : null;
 }
 
 // Relative expiry hint for an offer's validUntil, e.g. "läuft ab in 5 Tagen".
@@ -37,7 +38,7 @@ function expiryHint(iso: string | null): { text: string; urgent: boolean } | nul
 
 function formatPrice(cents: number, currency: string): string {
   try {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: currency.toUpperCase() }).format(
+    return new Intl.NumberFormat(intlLocale(), { style: 'currency', currency: currency.toUpperCase() }).format(
       cents / 100,
     );
   } catch {

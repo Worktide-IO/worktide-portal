@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { Check, MessageCircle, Sparkles, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -15,7 +16,7 @@ const TABS: { key: string; labelKey: string }[] = [
 function formatPrice(cents: number | null | undefined, currency: string): string | null {
   if (cents === null || cents === undefined) return null;
   try {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: currency.toUpperCase() }).format(cents / 100);
+    return new Intl.NumberFormat(intlLocale(), { style: 'currency', currency: currency.toUpperCase() }).format(cents / 100);
   } catch {
     return `${(cents / 100).toFixed(2)} ${currency.toUpperCase()}`;
   }

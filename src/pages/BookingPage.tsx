@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CalendarCheck, Clock, MapPin, User } from 'lucide-react';
@@ -63,12 +64,12 @@ export function BookingPage() {
   useEffect(loadSlots, [loadSlots]);
 
   const timeFmt = useMemo(
-    () => new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }),
-    [],
+    () => new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }),
+    [i18n.language],
   );
   const dateLongFmt = useMemo(
-    () => new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }),
-    [],
+    () => new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }),
+    [i18n.language],
   );
 
   function submit() {

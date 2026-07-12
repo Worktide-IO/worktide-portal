@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import i18n from '@/i18n';
+import { intlLocale } from '@/lib/intl';
 import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, CalendarCheck, CalendarClock } from 'lucide-react';
@@ -55,14 +57,14 @@ export function BookingReschedulePage() {
 
   useEffect(loadSlots, [loadSlots]);
 
-  const timeFmt = useMemo(() => new Intl.DateTimeFormat('de-DE', { hour: '2-digit', minute: '2-digit' }), []);
+  const timeFmt = useMemo(() => new Intl.DateTimeFormat(intlLocale(), { hour: '2-digit', minute: '2-digit' }), [i18n.language]);
   const dateLongFmt = useMemo(
-    () => new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }),
-    [],
+    () => new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }),
+    [i18n.language],
   );
   const fullFmt = useMemo(
-    () => new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-    [],
+    () => new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    [i18n.language],
   );
 
   function submit() {

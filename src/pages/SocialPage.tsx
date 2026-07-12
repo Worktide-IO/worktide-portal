@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { useTranslation } from 'react-i18next';
 import { Check, ChevronLeft, ChevronRight, Clock, Image, MessageCircle, Sparkles, X } from 'lucide-react';
 
@@ -30,7 +31,7 @@ const STATUS_CLASSES: Record<string, string> = {
 };
 
 function fmt(iso: string | null): string | null {
-  return iso ? new Date(iso).toLocaleString('de-DE', { dateStyle: 'medium', timeStyle: 'short' }) : null;
+  return iso ? new Date(iso).toLocaleString(intlLocale(), { dateStyle: 'medium', timeStyle: 'short' }) : null;
 }
 
 export function SocialPage() {

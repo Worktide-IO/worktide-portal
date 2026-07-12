@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { intlLocale } from '@/lib/intl';
 import { useNavigate } from 'react-router';
 import {
   AtSign,
@@ -38,7 +39,7 @@ function relativeTime(iso: string): string {
   const d = Math.round(h / 24);
   if (d === 1) return i18n.t('notif_bell.time_yesterday');
   if (d < 7) return i18n.t('notif_bell.time_days', { count: d });
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+  return new Date(iso).toLocaleDateString(intlLocale(), { day: '2-digit', month: 'short' });
 }
 
 export function NotificationBell() {

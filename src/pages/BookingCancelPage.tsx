@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
+import i18n from '@/i18n';
+import { intlLocale } from '@/lib/intl';
 import { useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { CalendarX } from 'lucide-react';
@@ -27,8 +29,8 @@ export function BookingCancelPage() {
   }, [token]);
 
   const fmt = useMemo(
-    () => new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
-    [],
+    () => new Intl.DateTimeFormat(intlLocale(), { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+    [i18n.language],
   );
 
   function cancel() {
