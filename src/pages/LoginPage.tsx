@@ -33,7 +33,7 @@ export function LoginPage() {
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-slate-50 px-4">
       <form onSubmit={submit} className="w-full max-w-sm space-y-4 rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
         <h1 className="text-xl font-semibold">{name}</h1>
-        <p className="text-sm text-slate-600">Bitte melden Sie sich an.</p>
+        <p className="text-sm text-slate-600">{t('login.please_sign_in')}</p>
         <label className="block text-sm">
           E-Mail
           <input

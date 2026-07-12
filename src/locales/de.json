@@ -374,5 +374,9 @@
   "tickets_list.empty_view": "Keine Tickets in dieser Ansicht.",
   "tickets_list.last_updated": "Zuletzt aktualisiert",
   "login.failed": "Anmeldung fehlgeschlagen. Bitte E-Mail und Passwort prüfen.",
-  "common.load_more": "Mehr laden"
+  "common.load_more": "Mehr laden",
+  "notifications.title": "Benachrichtigungen",
+  "notifications.empty": "Keine Benachrichtigungen.",
+  "login.please_sign_in": "Bitte melden Sie sich an.",
+  "a11y.settings": "Einstellungen"
 }
