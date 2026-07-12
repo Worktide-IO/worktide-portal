@@ -105,6 +105,8 @@ export type PortalNewsletterNode = {
   estimatedFrequency: string | null;
   estimatedFrequencyLabel: string | null;
   subscribable: boolean;
+  // Mandatory/transactional node: always on, no toggle (locked checkbox in the UI).
+  mandatory: boolean;
   subscribed: boolean;
   children: PortalNewsletterNode[];
 };
