@@ -29,6 +29,31 @@ export function localize(
 }
 
 /**
+ * Resolve a value from an explicit per-locale override map (e.g. a form block's
+ * `labelI18n`), falling back to the base string. Unlike {@link localize} this
+ * takes the overrides map directly, for content whose translations aren't stored
+ * under a `translations` property.
+ */
+export function localizeMap(
+  overrides: Record<string, string> | null | undefined,
+  base: string,
+  locale: string,
+): string {
+  const v = overrides?.[locale];
+  return typeof v === 'string' && v.trim() !== '' ? v : base;
+}
+
+/** Hook form of {@link localizeMap} bound to the portal's active language. */
+export function useLocalizeMap(): (
+  overrides: Record<string, string> | null | undefined,
+  base: string,
+) => string {
+  const { i18n } = useTranslation();
+  const locale = i18n.language.slice(0, 2);
+  return (overrides, base) => localizeMap(overrides, base, locale);
+}
+
+/**
  * Hook form of {@link localize} bound to the portal's active language
  * (i18next `i18n.language`, driven by the contact's preferred language / the
  * header switcher). Re-renders on a language switch like any i18n consumer.
