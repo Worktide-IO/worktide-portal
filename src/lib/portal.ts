@@ -322,6 +322,7 @@ export type PortalDocumentDetail = PortalDocument & {
 export type PortalFormField = {
   key: string;
   label: string;
+  labelI18n?: Record<string, string>; // per-locale label overrides
   type: string; // text | long_text | email | url | number | date | boolean | select | multi_select | rating | scale | matrix | file
   required: boolean;
   options: string[];
@@ -336,6 +337,7 @@ export type FormBlock = {
   key: string;
   type: string;
   label: string;
+  labelI18n?: Record<string, string>; // per-locale label overrides
   required: boolean;
   options: string[];
   placeholder: string | null;

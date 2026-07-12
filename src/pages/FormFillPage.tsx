@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, CheckCircle2, Save, Star } from 'lucide-react';
 
 import { portalApi, type FormBlock, type FormSchema, type PortalFormDetail } from '@/lib/portal';
 import { evaluateForm, INPUT_TYPES } from '@/lib/formLogic';
-import { useLocalize } from '@/lib/localize';
+import { useLocalize, useLocalizeMap } from '@/lib/localize';
 
 const inputClass = 'mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm';
 
@@ -303,8 +303,10 @@ export function FormFillPage() {
 }
 
 function StaticBlock({ block }: { block: FormBlock }) {
-  if (block.type === 'heading') return <h2 className="text-base font-semibold text-slate-800">{block.label}</h2>;
-  return <p className="text-sm text-slate-500">{block.label}</p>;
+  const labelOf = useLocalizeMap();
+  const label = labelOf(block.labelI18n, block.label);
+  if (block.type === 'heading') return <h2 className="text-base font-semibold text-slate-800">{label}</h2>;
+  return <p className="text-sm text-slate-500">{label}</p>;
 }
 
 function CalcSummary({ calc }: { calc: Record<string, number> }) {
@@ -326,9 +328,11 @@ function CalcSummary({ calc }: { calc: Record<string, number> }) {
 
 function Field({ block, value, onChange }: { block: FormBlock; value: unknown; onChange: (v: unknown) => void }) {
   const { t } = useTranslation();
+  const labelOf = useLocalizeMap();
+  const blockLabel = labelOf(block.labelI18n, block.label);
   const label = (
     <span className="text-sm font-medium">
-      {block.label}
+      {blockLabel}
       {block.required ? <span className="text-red-500"> *</span> : null}
     </span>
   );
@@ -469,7 +473,7 @@ function Field({ block, value, onChange }: { block: FormBlock; value: unknown; o
     return (
       <label className="flex items-center gap-2 text-sm">
         <input type="checkbox" checked={value === true} onChange={(e) => onChange(e.target.checked)} />
-        {block.label}
+        {blockLabel}
       </label>
     );
   }
