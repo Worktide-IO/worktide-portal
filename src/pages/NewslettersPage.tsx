@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Mail } from 'lucide-react';
+import { DynamicIcon } from 'lucide-react/dynamic';
 import { useTranslation } from 'react-i18next';
 
 import { portalApi, type PortalNewsletterNode } from '@/lib/portal';
@@ -105,6 +106,11 @@ function NewsletterRow({
           />
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
+              <DynamicIcon
+                name={(node.icon || 'mail') as Parameters<typeof DynamicIcon>[0]['name']}
+                className="size-4 shrink-0"
+                style={{ color: node.color || '#94a3b8' }}
+              />
               <span className="text-sm font-medium text-slate-800">{localize(node, 'title')}</span>
               {node.estimatedFrequencyLabel ? (
                 <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
