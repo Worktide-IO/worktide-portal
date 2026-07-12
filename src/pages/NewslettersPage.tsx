@@ -88,6 +88,7 @@ function NewsletterRow({
   onToggle: (n: PortalNewsletterNode) => void;
   first: boolean;
 }) {
+  const { t } = useTranslation();
   const localize = useLocalize();
   const pad = { paddingLeft: 16 + depth * 20 };
   return (
@@ -121,6 +122,38 @@ function NewsletterRow({
             {node.description ? <span className="mt-0.5 block text-xs text-slate-500">{localize(node, 'description')}</span> : null}
           </span>
         </label>
+      ) : node.mandatory ? (
+        <div
+          className={`flex items-start gap-3 px-4 py-3 ${first ? '' : 'border-t border-slate-100'}`}
+          style={pad}
+        >
+          <input
+            type="checkbox"
+            checked
+            disabled
+            readOnly
+            className="mt-0.5 size-4 shrink-0 accent-[var(--brand-primary)]"
+          />
+          <span className="min-w-0 flex-1">
+            <span className="flex items-center gap-2">
+              <DynamicIcon
+                name={(node.icon || 'mail') as Parameters<typeof DynamicIcon>[0]['name']}
+                className="size-4 shrink-0"
+                style={{ color: node.color || '#94a3b8' }}
+              />
+              <span className="text-sm font-medium text-slate-800">{localize(node, 'title')}</span>
+              <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
+                {t('newsletters.mandatory_badge')}
+              </span>
+              {node.estimatedFrequencyLabel ? (
+                <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500">
+                  {node.estimatedFrequencyLabel}
+                </span>
+              ) : null}
+            </span>
+            {node.description ? <span className="mt-0.5 block text-xs text-slate-500">{localize(node, 'description')}</span> : null}
+          </span>
+        </div>
       ) : (
         <div
           className={`px-4 pb-1 pt-3 text-xs font-semibold uppercase tracking-wide text-slate-400 ${first ? '' : 'border-t border-slate-100'}`}
