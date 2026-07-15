@@ -26,6 +26,7 @@ const NewTicketPage = lazy(() => import('@/pages/NewTicketPage').then((m) => ({ 
 const SystemsPage = lazy(() => import('@/pages/SystemsPage').then((m) => ({ default: m.SystemsPage })));
 const DashboardPage = lazy(() => import('@/pages/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const AgreementsPage = lazy(() => import('@/pages/AgreementsPage').then((m) => ({ default: m.AgreementsPage })));
+const InvoicesPage = lazy(() => import('@/pages/InvoicesPage').then((m) => ({ default: m.InvoicesPage })));
 const IdeasPage = lazy(() => import('@/pages/IdeasPage').then((m) => ({ default: m.IdeasPage })));
 const DocumentsPage = lazy(() => import('@/pages/DocumentsPage').then((m) => ({ default: m.DocumentsPage })));
 const FilesPage = lazy(() => import('@/pages/FilesPage').then((m) => ({ default: m.FilesPage })));
@@ -89,6 +90,7 @@ export default function App() {
         <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
         <Route path="/monitoring" element={<RequireAuth><SystemsPage /></RequireAuth>} />
         <Route path="/agreements" element={<RequireAuth><AgreementsPage /></RequireAuth>} />
+        <Route path="/rechnungen" element={<RequireAuth><InvoicesPage /></RequireAuth>} />
         <Route path="/ideas" element={<RequireAuth><IdeasPage /></RequireAuth>} />
         <Route path="/documents" element={<RequireAuth><DocumentsPage /></RequireAuth>} />
         <Route path="/documents/:id" element={<RequireAuth><DocumentDetailPage /></RequireAuth>} />
