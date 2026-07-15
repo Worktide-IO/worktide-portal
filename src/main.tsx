@@ -7,6 +7,7 @@ import '@/index.css';
 import '@/i18n'; // initialise i18next before the app renders
 import { BrandingProvider } from '@/providers/brandingProvider';
 import { applyBranding, readCachedBranding } from '@/lib/branding';
+import { logVersionDiagnostics } from '@/lib/version';
 
 declare global {
   interface Window {
@@ -18,6 +19,10 @@ declare global {
 // white-labeled portal never flashes stock Worktide colors. The
 // BrandingProvider revalidates against the API once mounted.
 applyBranding(readCachedBranding());
+
+// One-time console diagnostics: log the portal build + the API build and warn
+// on a mismatch (stale SPA against a newer API).
+logVersionDiagnostics();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
