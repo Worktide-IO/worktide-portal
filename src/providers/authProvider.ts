@@ -31,6 +31,8 @@ export async function logout(): Promise<void> {
   // Drop the cached hub JWT — it's scoped to this user's topic, so a
   // login-as-different-user must not reuse it for its 30-minute lifetime.
   clearMercureToken();
+  // Clear any impersonation-preview marker so a later real login isn't banner-ed.
+  sessionStorage.removeItem('portalImpersonation');
 }
 
 /**
@@ -44,4 +46,24 @@ export function ensureAuthenticated(): Promise<boolean> {
 
 export async function setPassword(token: string, password: string): Promise<void> {
   await api.post('/auth/reset-password', { token, password });
+}
+
+/**
+ * Passwordless login: spend a magic-link token (from the emailed/handed URL) and
+ * establish the session. Today this backs staff "preview the portal as this
+ * customer" — the backend mints a short-lived JWT (no refresh cookie), so the
+ * session is ephemeral (in-memory, dies on reload / after 1h). Returns the
+ * impersonation context so the UI can show a preview banner.
+ */
+export async function consumeMagicLink(
+  token: string,
+): Promise<{ customerName: string | null; issuedBy: string | null }> {
+  const { data } = await api.post<{
+    token: string;
+    impersonation?: boolean;
+    customerName?: string | null;
+    issuedBy?: string | null;
+  }>('/auth/magic-link/consume', { token });
+  setAccessToken(data.token); // in-memory only; no refresh cookie for previews
+  return { customerName: data.customerName ?? null, issuedBy: data.issuedBy ?? null };
 }

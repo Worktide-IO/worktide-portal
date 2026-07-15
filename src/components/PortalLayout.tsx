@@ -25,6 +25,7 @@ import { portalApi, languageLabel, type PortalMe } from '@/lib/portal';
 import { NotificationBell } from '@/components/NotificationBell';
 import { BrandMark } from '@/components/BrandMark';
 import { Footer } from '@/components/Footer';
+import { ImpersonationBanner } from '@/components/ImpersonationBanner';
 
 /**
  * Portal chrome: a slim header + the full wireframe navigation, with only the
@@ -80,6 +81,7 @@ export function PortalLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
+      <ImpersonationBanner />
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3">
           <Link to="/tickets" className="flex items-center gap-2 font-semibold">

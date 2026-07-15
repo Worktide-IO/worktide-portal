@@ -7,6 +7,7 @@ import { ensureAuthenticated } from '@/providers/authProvider';
 import { getAccessToken } from '@/lib/api';
 import { LoginPage } from '@/pages/LoginPage';
 import { SetPasswordPage } from '@/pages/SetPasswordPage';
+import { MagicLinkCallbackPage } from '@/pages/MagicLinkCallbackPage';
 import { BookingPage } from '@/pages/BookingPage';
 import { BookingCancelPage } from '@/pages/BookingCancelPage';
 import { BookingReschedulePage } from '@/pages/BookingReschedulePage';
@@ -74,6 +75,8 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/set-password" element={<SetPasswordPage />} />
+        {/* Passwordless magic-login (staff "preview as customer"); token IS the credential. */}
+        <Route path="/auth/magic" element={<MagicLinkCallbackPage />} />
         {/* Public, unauthenticated booking pages — no RequireAuth. */}
         <Route path="/book/cancel/:token" element={<BookingCancelPage />} />
         <Route path="/book/reschedule/:token" element={<BookingReschedulePage />} />
