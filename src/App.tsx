@@ -8,6 +8,7 @@ import { getAccessToken } from '@/lib/api';
 import { LoginPage } from '@/pages/LoginPage';
 import { SetPasswordPage } from '@/pages/SetPasswordPage';
 import { MagicLinkCallbackPage } from '@/pages/MagicLinkCallbackPage';
+import { NotFoundPage } from '@/pages/NotFoundPage';
 import { BookingPage } from '@/pages/BookingPage';
 import { BookingCancelPage } from '@/pages/BookingCancelPage';
 import { BookingReschedulePage } from '@/pages/BookingReschedulePage';
@@ -101,7 +102,9 @@ export default function App() {
         <Route path="/newsletter" element={<RequireAuth><NewslettersPage /></RequireAuth>} />
         <Route path="/termin" element={<RequireAuth><BookingBookPage /></RequireAuth>} />
         <Route path="/abwesenheit" element={<RequireAuth><AbsencePage /></RequireAuth>} />
-        <Route path="*" element={<Navigate to="/tickets" replace />} />
+        {/* Root → overview; genuinely unknown paths get a branded 404. */}
+        <Route path="/" element={<Navigate to="/tickets" replace />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   );
