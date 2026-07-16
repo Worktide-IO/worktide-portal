@@ -113,6 +113,7 @@ export function FeedbackWidget() {
         }
       }
       setToast(t('feedback.submitted'));
+      window.dispatchEvent(new Event('wt-feedback-submitted'));
       resetAndClose();
     } catch (err) {
       if (isNetworkError(err)) {
