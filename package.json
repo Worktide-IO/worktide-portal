@@ -14,6 +14,7 @@
   "dependencies": {
     "axios": "^1.17.0",
     "event-source-plus": "^0.1.15",
+    "html-to-image": "^1.11.13",
     "i18next": "^26.3.6",
     "lucide-react": "^1.18.0",
     "react": "^19.2.6",

@@ -495,6 +495,47 @@ export type PortalFilesResponse = {
   files: PortalFileItem[];
 };
 
+// --- Feedback board (shared, cross-tenant, anonymized) ---------------------
+
+export type FeedbackCategory = {
+  key: string;
+  label: string | null;
+  icon: string | null;
+  color: string | null;
+};
+export type FeedbackStatus = { key: string; label: string; isCompleted: boolean };
+/** A role-label key for normal viewers, or `{name}` for super-admins. */
+export type FeedbackAuthorLabel = string | { name: string | null };
+export type FeedbackTicket = {
+  id: string;
+  identifier: string | null;
+  title: string;
+  description?: string | null;
+  category: FeedbackCategory;
+  status: FeedbackStatus;
+  authorLabel: string;
+  isMine: boolean;
+  replyCount: number;
+  createdAt: string;
+  updatedAt: string;
+  submitter?: { name: string | null };
+};
+export type FeedbackReply = {
+  id: string;
+  authorLabel: FeedbackAuthorLabel;
+  content: string;
+  createdAt: string;
+};
+export type FeedbackDetail = { ticket: FeedbackTicket; replies: FeedbackReply[] };
+export type FeedbackSubmitInput = {
+  title: string;
+  category: string;
+  description?: string;
+  route?: string;
+  appVersion?: string;
+  diagnostics?: unknown;
+};
+
 export const portalApi = {
   me: () => api.get<PortalMe>('/portal/me').then((r) => r.data),
 
@@ -677,6 +718,24 @@ export const portalApi = {
 
   postBrainstorm: (body: string) =>
     api.post<PortalBrainstormNote>('/portal/brainstorm', { body }).then((r) => r.data),
+
+  listFeedback: (params: { category?: string; status?: string } = {}) =>
+    api.get<{ items: FeedbackTicket[] }>('/portal/feedback', { params }).then((r) => r.data.items),
+
+  feedbackDetail: (id: string) =>
+    api.get<FeedbackDetail>(`/portal/feedback/${id}`).then((r) => r.data),
+
+  submitFeedback: (input: FeedbackSubmitInput) =>
+    api.post<FeedbackTicket>('/portal/feedback', input).then((r) => r.data),
+
+  replyFeedback: (id: string, content: string) =>
+    api.post<FeedbackReply>(`/portal/feedback/${id}/replies`, { content }).then((r) => r.data),
+
+  uploadFeedbackScreenshot: (id: string, blob: Blob) => {
+    const fd = new FormData();
+    fd.append('file', blob, 'screenshot.png');
+    return api.post(`/portal/feedback/${id}/attachments`, fd);
+  },
 
   documents: () =>
     api.get<{ documents: PortalDocument[] }>('/portal/documents').then((r) => r.data.documents),
