@@ -35,6 +35,13 @@ export function FeedbackPage() {
     load();
   }, [load]);
 
+  // Refresh when a report is filed via the global widget while viewing the board.
+  useEffect(() => {
+    const onSubmitted = () => load();
+    window.addEventListener('wt-feedback-submitted', onSubmitted);
+    return () => window.removeEventListener('wt-feedback-submitted', onSubmitted);
+  }, [load]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
