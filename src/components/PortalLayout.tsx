@@ -11,6 +11,7 @@ import {
   Lightbulb,
   LogOut,
   Mail,
+  MessageSquarePlus,
   Presentation,
   Receipt,
   Settings,
@@ -27,6 +28,8 @@ import { NotificationBell } from '@/components/NotificationBell';
 import { BrandMark } from '@/components/BrandMark';
 import { Footer } from '@/components/Footer';
 import { ImpersonationBanner } from '@/components/ImpersonationBanner';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { FeedbackWidget, openFeedback } from '@/components/feedback/FeedbackWidget';
 
 /**
  * Portal chrome: a slim header + the full wireframe navigation, with only the
@@ -54,6 +57,7 @@ const NAV: NavItem[] = [
   { key: 'newsletters', label: 'Newsletter', icon: Mail, to: '/newsletter' },
   { key: 'booking', label: 'Termin buchen', icon: CalendarClock, to: '/termin' },
   { key: 'absence', label: 'Abwesenheit', icon: CalendarOff, to: '/abwesenheit' },
+  { key: 'feedback', label: 'Feedback', icon: MessageSquarePlus, to: '/feedback' },
 ];
 
 export function PortalLayout({ children }: { children: ReactNode }) {
@@ -117,6 +121,15 @@ export function PortalLayout({ children }: { children: ReactNode }) {
                 ))}
               </select>
             ) : null}
+            <button
+              type="button"
+              onClick={() => openFeedback()}
+              aria-label={t('feedback.trigger_aria')}
+              title={t('feedback.trigger_aria')}
+              className="inline-flex size-9 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+            >
+              <MessageSquarePlus className="size-5" />
+            </button>
             <NotificationBell />
             <Link
               to="/einstellungen"
@@ -181,9 +194,12 @@ export function PortalLayout({ children }: { children: ReactNode }) {
           </ul>
         </nav>
 
-        <main className="min-w-0 flex-1">{children}</main>
+        <main className="min-w-0 flex-1">
+          <ErrorBoundary>{children}</ErrorBoundary>
+        </main>
       </div>
       <Footer className="py-6" />
+      <FeedbackWidget />
     </div>
   );
 }

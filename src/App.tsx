@@ -40,6 +40,7 @@ const SettingsPage = lazy(() => import('@/pages/SettingsPage').then((m) => ({ de
 const NewslettersPage = lazy(() => import('@/pages/NewslettersPage').then((m) => ({ default: m.NewslettersPage })));
 const BookingBookPage = lazy(() => import('@/pages/BookingBookPage').then((m) => ({ default: m.BookingBookPage })));
 const AbsencePage = lazy(() => import('@/pages/AbsencePage').then((m) => ({ default: m.AbsencePage })));
+const FeedbackPage = lazy(() => import('@/pages/FeedbackPage').then((m) => ({ default: m.FeedbackPage })));
 
 /** Gate authenticated routes; unauthenticated visitors go to /login. */
 /**
@@ -104,6 +105,7 @@ export default function App() {
         <Route path="/newsletter" element={<RequireAuth><NewslettersPage /></RequireAuth>} />
         <Route path="/termin" element={<RequireAuth><BookingBookPage /></RequireAuth>} />
         <Route path="/abwesenheit" element={<RequireAuth><AbsencePage /></RequireAuth>} />
+        <Route path="/feedback" element={<RequireAuth><FeedbackPage /></RequireAuth>} />
         {/* Root → overview; genuinely unknown paths get a branded 404. */}
         <Route path="/" element={<Navigate to="/tickets" replace />} />
         <Route path="*" element={<NotFoundPage />} />
