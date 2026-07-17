@@ -185,6 +185,8 @@
   "dashboard.blockers_one": "Blockers ({{count}})",
   "dashboard.blockers_other": "Blockers ({{count}})",
   "dashboard.activity": "Activity",
+  "dashboard.staff_availability": "Limited availability",
+  "dashboard.staff_available_percent": "{{percent}} % available",
   "document_detail.not_found": "Document not found or no access.",
   "document_detail.no_content": "No content.",
   "documents_list.load_error": "Could not load documents.",
