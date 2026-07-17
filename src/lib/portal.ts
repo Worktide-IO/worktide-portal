@@ -158,6 +158,16 @@ export type PortalDashboard = {
   activity: PortalDashboardActivity[];
 };
 
+// Limited availability of an agency staff member the customer works with
+// (ticket assignee / project owner). The medical reason is NOT exposed by the
+// backend — only the percentage and the window.
+export type PortalStaffAvailability = {
+  staffName: string;
+  availabilityPercent: number;
+  startsOn: string;
+  endsOn: string;
+};
+
 // Monitoring screen: the customer's systems inventory + managed status.
 // NOTE: no uptime/latency/incidents — that data isn't in the backend model
 // yet (see docs/RECONCILIATION.md). We show what's real.
@@ -505,6 +515,11 @@ export const portalApi = {
 
   contactAbsences: () =>
     api.get<{ absences: PortalContactAbsence[] }>('/portal/absences').then((r) => r.data.absences),
+
+  staffAvailability: () =>
+    api
+      .get<{ staff: PortalStaffAvailability[] }>('/portal/staff-availability')
+      .then((r) => r.data.staff),
 
   createContactAbsence: (input: { startsOn: string; endsOn: string; note?: string }) =>
     api.post<PortalContactAbsence>('/portal/absences', input).then((r) => r.data),
