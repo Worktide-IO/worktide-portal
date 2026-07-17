@@ -2,10 +2,17 @@ import { useEffect, useState } from 'react';
 import { intlLocale } from '@/lib/intl';
 import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Clock, Server, Ticket, Wallet } from 'lucide-react';
+import { AlertTriangle, Clock, Server, Ticket, UserMinus, Wallet } from 'lucide-react';
 
 import i18n from '@/i18n';
-import { portalApi, type PortalDashboard } from '@/lib/portal';
+import { portalApi, type PortalDashboard, type PortalStaffAvailability } from '@/lib/portal';
+
+/** ISO date (Y-m-d) → short German range, e.g. "03.02.–05.02.". */
+function fmtDateRange(a: string, b: string): string {
+  const fmt = (d: string) =>
+    new Date(d).toLocaleDateString(intlLocale(), { day: '2-digit', month: '2-digit' });
+  return a === b ? fmt(a) : `${fmt(a)}–${fmt(b)}`;
+}
 
 /** Minutes → German decimal hours, e.g. 1512 → "25,2". */
 function hours(min: number): string {
@@ -28,6 +35,7 @@ function relativeTime(iso: string): string {
 export function DashboardPage() {
   const { t } = useTranslation();
   const [data, setData] = useState<PortalDashboard | null>(null);
+  const [staffAvailability, setStaffAvailability] = useState<PortalStaffAvailability[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -35,6 +43,11 @@ export function DashboardPage() {
       .dashboard()
       .then(setData)
       .catch(() => setError(t('dashboard.load_error')));
+    // Best-effort — a missing staff-availability signal must not break the dashboard.
+    portalApi
+      .staffAvailability()
+      .then(setStaffAvailability)
+      .catch(() => setStaffAvailability([]));
   }, [t]);
 
   if (error) return <p className="text-sm text-red-600">{error}</p>;
@@ -122,6 +135,25 @@ export function DashboardPage() {
           </div>
         )}
       </section>
+
+      {staffAvailability.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
+            <UserMinus className="size-4 text-amber-500" /> {t('dashboard.staff_availability')}
+          </h2>
+          <ul className="divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white p-2">
+            {staffAvailability.map((s, i) => (
+              <li key={`${s.staffName}-${s.startsOn}-${i}`} className="flex items-center gap-3 px-2 py-2 text-sm">
+                <span className="min-w-0 flex-1 truncate font-medium">{s.staffName}</span>
+                <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-xs text-amber-800">
+                  {t('dashboard.staff_available_percent', { percent: s.availabilityPercent })}
+                </span>
+                <span className="shrink-0 text-xs text-slate-500">{fmtDateRange(s.startsOn, s.endsOn)}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {data.blockers.length > 0 ? (
         <section className="space-y-3">
