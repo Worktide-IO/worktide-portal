@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronRight, Download, File as FileIcon, Folder as FolderIcon, Home, Loader2, Upload } from 'lucide-react';
+import { ChevronRight, Download, FileImage, FileText, Folder as FolderIcon, Home, Loader2, Upload } from 'lucide-react';
 
 import { useFileStream } from '@/lib/mercure';
 import { portalApi, type PortalFileItem, type PortalFilesResponse, type PortalFolder } from '@/lib/portal';
@@ -13,6 +13,39 @@ function formatSize(size: number | string | null | undefined): string {
   if (n < 1024) return `${n} B`;
   if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
   return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function isImage(mime: string | null | undefined): boolean {
+  return !!mime && (mime.startsWith('image/'));
+}
+
+function FileThumb({ file }: { file: PortalFileItem }) {
+  const [src, setSrc] = useState<string | null>(null);
+  const [errored, setErrored] = useState(false);
+
+  useEffect(() => {
+    if (!isImage(file.mimeType)) return;
+    let cancelled = false;
+    portalApi.downloadPortalFile(file.id).then((blob) => {
+      if (!cancelled) setSrc(URL.createObjectURL(blob));
+    }).catch(() => setErrored(true));
+    return () => { cancelled = true; if (src) URL.revokeObjectURL(src); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file.id, file.mimeType]);
+
+  if (src && !errored) {
+    return (
+      <img
+        src={src}
+        alt={file.name}
+        className="size-10 shrink-0 rounded object-cover border"
+      />
+    );
+  }
+  if (isImage(file.mimeType)) {
+    return <FileImage className="size-10 shrink-0 text-slate-300" />;
+  }
+  return <FileText className="size-10 shrink-0 text-slate-300" />;
 }
 
 /**
@@ -150,14 +183,16 @@ export function FilesPage() {
             </li>
           ))}
           {files.map((f) => (
-            <li key={`f-${f.id}`} className="flex items-center gap-3 px-4 py-3">
-              <FileIcon className="size-5 text-slate-400" />
-              <span className="flex-1 truncate">{f.name}</span>
-              <span className="text-xs tabular-nums text-slate-400">{formatSize(f.size)}</span>
+            <li key={`f-${f.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
+              <FileThumb file={f} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium">{f.name}</p>
+                <p className="text-xs text-slate-400">{formatSize(f.size)}</p>
+              </div>
               <button
                 type="button"
                 onClick={() => void download(f)}
-                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-slate-600 hover:bg-slate-100"
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-sm text-slate-600 hover:bg-slate-100 shrink-0"
               >
                 <Download className="size-4" /> {t('files_list.download')}
               </button>
