@@ -18,7 +18,7 @@ export const MERCURE_HUB_URL: string =
  * the topic IRI on the client — the backend derives it from the authenticated
  * user, so the client can only ever listen to its own notifications.
  */
-export type PortalMercureToken = { token: string; topic: string; expiresAt: string };
+export type PortalMercureToken = { token: string; topic: string; expiresAt: string; fileTopic?: string | null };
 
 /**
  * Module-scoped token cache. The hub JWT lives 30 minutes; we refresh 60 s
@@ -134,4 +134,60 @@ export function useNotificationStream<T = unknown>(
       controller?.abort();
     };
   }, [enabled]);
+}
+
+/**
+ * Subscribe to the portal's file-change topic. Reloads the file list whenever a
+ * new file is uploaded (by staff or by the portal user in another tab).
+ */
+export function useFileStream(onChange: () => void): void {
+  const cbRef = useRef(onChange);
+  useEffect(() => {
+    cbRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let controller: { abort: () => void } | null = null;
+
+    (async () => {
+      let auth: PortalMercureToken;
+      try {
+        auth = await getToken();
+      } catch {
+        return;
+      }
+      if (cancelled || !auth.fileTopic) return;
+
+      const url = new URL(MERCURE_HUB_URL, window.location.origin);
+      url.searchParams.append('topic', auth.fileTopic);
+
+      const es = new EventSourcePlus(url.toString(), {
+        headers: { Authorization: `Bearer ${auth.token}` },
+        maxRetryCount: 10,
+        maxRetryInterval: 10_000,
+      });
+
+      controller = es.listen({
+        onMessage() {
+          if (!cancelled) cbRef.current();
+        },
+        onRequestError({ error }) {
+          if (
+            typeof error === 'object' &&
+            error !== null &&
+            'status' in error &&
+            (error as { status?: number }).status === 401
+          ) {
+            clearMercureToken();
+          }
+        },
+      });
+    })();
+
+    return () => {
+      cancelled = true;
+      controller?.abort();
+    };
+  }, []);
 }

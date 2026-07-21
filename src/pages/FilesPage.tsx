@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight, Download, File as FileIcon, Folder as FolderIcon, Home, Loader2, Upload } from 'lucide-react';
 
+import { useFileStream } from '@/lib/mercure';
 import { portalApi, type PortalFileItem, type PortalFilesResponse, type PortalFolder } from '@/lib/portal';
 
 type Crumb = { id: string; name: string };
@@ -42,6 +43,8 @@ export function FilesPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  useFileStream(load);
 
   const openFolder = (f: PortalFolder) => {
     setData(null);
