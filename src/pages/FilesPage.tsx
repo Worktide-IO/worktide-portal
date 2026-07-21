@@ -325,7 +325,7 @@ export function FilesPage() {
               <button
                 type="button"
                 onClick={() => openFolder(f)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50"
+                className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 cursor-pointer"
               >
                 <FolderIcon className="size-5 text-sky-500" />
                 <span className="font-medium">{f.name}</span>
@@ -336,7 +336,7 @@ export function FilesPage() {
             const isImg = fileKind(f.mimeType) === 'image';
             return (
               <li key={`f-${f.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
-                <button type="button" onClick={() => openFile(f)} className="flex flex-1 items-center gap-3 text-left min-w-0">
+                <button type="button" onClick={() => openFile(f)} className="flex flex-1 items-center gap-3 text-left min-w-0 cursor-pointer">
                   {isImg && mediaUrls[f.id] ? (
                     <span className="relative size-9 shrink-0 overflow-hidden rounded border bg-slate-100">
                       <img src={mediaUrls[f.id]} alt={f.name} className="size-full object-cover" />
