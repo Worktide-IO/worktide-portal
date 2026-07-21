@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { intlLocale } from '@/lib/intl';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router';
 import { Plus } from 'lucide-react';
 
+import { useTicketStream } from '@/lib/mercure';
 import { portalApi, type PortalTicket, type PortalTicketSla } from '@/lib/portal';
 import { PriorityBadge } from '@/components/PriorityBadge';
 
@@ -39,12 +40,18 @@ export function TicketsListPage() {
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string>(ALL);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     portalApi
       .tickets()
       .then(setTickets)
       .catch(() => setError(translate('tickets_list.load_error')));
   }, [translate]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useTicketStream(load);
 
   // Filter chips built from the statuses actually present (workspace statuses
   // are configurable, so we don't hard-code Offen/In Arbeit/…).

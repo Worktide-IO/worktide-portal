@@ -18,7 +18,7 @@ export const MERCURE_HUB_URL: string =
  * the topic IRI on the client — the backend derives it from the authenticated
  * user, so the client can only ever listen to its own notifications.
  */
-export type PortalMercureToken = { token: string; topic: string; expiresAt: string; fileTopic?: string | null };
+export type PortalMercureToken = { token: string; topic: string; expiresAt: string; fileTopic?: string | null; ticketTopic?: string | null };
 
 /**
  * Module-scoped token cache. The hub JWT lives 30 minutes; we refresh 60 s
@@ -141,6 +141,21 @@ export function useNotificationStream<T = unknown>(
  * new file is uploaded (by staff or by the portal user in another tab).
  */
 export function useFileStream(onChange: () => void): void {
+  usePortalTopic((auth) => auth.fileTopic, onChange);
+}
+
+/**
+ * Subscribe to the portal's ticket-change topic. Reloads the ticket list
+ * whenever a task in an external project is created/updated/deleted.
+ */
+export function useTicketStream(onChange: () => void): void {
+  usePortalTopic((auth) => auth.ticketTopic, onChange);
+}
+
+function usePortalTopic(
+  topicFn: (auth: PortalMercureToken) => string | null | undefined,
+  onChange: () => void,
+): void {
   const cbRef = useRef(onChange);
   useEffect(() => {
     cbRef.current = onChange;
@@ -157,10 +172,11 @@ export function useFileStream(onChange: () => void): void {
       } catch {
         return;
       }
-      if (cancelled || !auth.fileTopic) return;
+      const topic = topicFn(auth);
+      if (cancelled || !topic) return;
 
       const url = new URL(MERCURE_HUB_URL, window.location.origin);
-      url.searchParams.append('topic', auth.fileTopic);
+      url.searchParams.append('topic', topic);
 
       const es = new EventSourcePlus(url.toString(), {
         headers: { Authorization: `Bearer ${auth.token}` },
@@ -189,5 +205,5 @@ export function useFileStream(onChange: () => void): void {
       cancelled = true;
       controller?.abort();
     };
-  }, []);
+  }, [topicFn]);
 }
