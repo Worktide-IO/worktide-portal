@@ -402,6 +402,7 @@
   "tickets_list.empty": "No tickets yet.",
   "tickets_list.empty_view": "No tickets in this view.",
   "tickets_list.last_updated": "Last updated",
+  "tickets_list.all_projects": "All projects",
   "login.failed": "Sign-in failed. Please check your email and password.",
   "common.load_more": "Load more",
   "notifications.title": "Notifications",

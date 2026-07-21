@@ -62,9 +62,24 @@ export function TicketsListPage() {
   }, [tickets]);
 
   const waitingCount = (tickets ?? []).filter((t) => t.waitingForYou).length;
-  const visible = (tickets ?? []).filter((t) =>
-    status === ALL ? true : status === WAITING ? t.waitingForYou : t.statusLabel === status,
-  );
+
+  // Project filter
+  const projectNames = useMemo(() => {
+    const names = new Map<string, number>();
+    for (const t of tickets ?? []) {
+      if (t.projectName) names.set(t.projectName, (names.get(t.projectName) ?? 0) + 1);
+    }
+    return [...names.entries()].sort(([a], [b]) => a.localeCompare(b));
+  }, [tickets]);
+
+  const [projectFilter, setProjectFilter] = useState<string>(ALL);
+
+  const visible = (tickets ?? []).filter((t) => {
+    if (status !== ALL && status !== WAITING && t.statusLabel !== status) return false;
+    if (status === WAITING && !t.waitingForYou) return false;
+    if (projectFilter !== ALL && t.projectName !== projectFilter) return false;
+    return true;
+  });
 
   return (
     <div className="space-y-4">
@@ -82,14 +97,24 @@ export function TicketsListPage() {
       {tickets === null && !error ? <p className="text-sm text-slate-500">{translate('app.loading')}</p> : null}
 
       {tickets && tickets.length > 0 ? (
-        <div className="flex flex-wrap gap-2">
-          <Chip label={translate('tickets_list.all')} count={tickets.length} active={status === ALL} onClick={() => setStatus(ALL)} />
-          {statuses.map(([label, count]) => (
-            <Chip key={label} label={label} count={count} active={status === label} onClick={() => setStatus(label)} />
-          ))}
-          {waitingCount > 0 ? (
-            <Chip label={translate('tickets_list.waiting_for_me')} count={waitingCount} active={status === WAITING} onClick={() => setStatus(WAITING)} />
-          ) : null}
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            <Chip label={translate('tickets_list.all')} count={tickets.length} active={status === ALL} onClick={() => setStatus(ALL)} />
+            {statuses.map(([label, count]) => (
+              <Chip key={label} label={label} count={count} active={status === label} onClick={() => setStatus(label)} />
+            ))}
+            {waitingCount > 0 ? (
+              <Chip label={translate('tickets_list.waiting_for_me')} count={waitingCount} active={status === WAITING} onClick={() => setStatus(WAITING)} />
+            ) : null}
+          </div>
+          {projectNames.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              <ProjectChip label={translate('tickets_list.all_projects')} count={tickets.length} active={projectFilter === ALL} onClick={() => setProjectFilter(ALL)} />
+              {projectNames.map(([name, count]) => (
+                <ProjectChip key={name} label={name} count={count} active={projectFilter === name} onClick={() => setProjectFilter(name)} />
+              ))}
+            </div>
+          )}
         </div>
       ) : null}
 
@@ -136,6 +161,22 @@ function Chip({ label, count, active, onClick }: { label: string; count: number;
       }`}
     >
       {label} <span className={active ? 'text-slate-300' : 'text-slate-400'}>{count}</span>
+    </button>
+  );
+}
+
+function ProjectChip({ label, count, active, onClick }: { label: string; count: number; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
+        active
+          ? 'border-slate-900 bg-slate-900 text-white'
+          : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-50'
+      }`}
+    >
+      {label} <span className={active ? 'text-slate-400' : 'text-slate-400'}>({count})</span>
     </button>
   );
 }
