@@ -15,5 +15,5 @@ web_extra_exposed_ports:
 
 web_extra_daemons:
   - name: "vite"
-    command: bash -c 'corepack use pnpm@latest 2>/dev/null; pnpm install --frozen-lockfile --silent 2>/dev/null; pnpm dev'
+    command: bash -c 'CI=true corepack use pnpm@latest 2>/dev/null; CI=true pnpm install --frozen-lockfile --silent 2>/dev/null; CI=true pnpm dev'
     directory: /var/www/html
