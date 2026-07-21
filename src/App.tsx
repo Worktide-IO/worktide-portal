@@ -1,6 +1,8 @@
 import { lazy, Suspense, useEffect, useState, type ReactNode } from 'react';
-import { Navigate, Route, Routes } from 'react-router';
+import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
+
+import { useBranding } from '@/providers/brandingProvider';
 
 import { PortalLayout } from '@/components/PortalLayout';
 import { ensureAuthenticated } from '@/providers/authProvider';
@@ -41,6 +43,43 @@ const NewslettersPage = lazy(() => import('@/pages/NewslettersPage').then((m) =>
 const BookingBookPage = lazy(() => import('@/pages/BookingBookPage').then((m) => ({ default: m.BookingBookPage })));
 const AbsencePage = lazy(() => import('@/pages/AbsencePage').then((m) => ({ default: m.AbsencePage })));
 
+/** Sets the browser tab title per route, with the brand name suffix. */
+const ROUTE_TITLES: Record<string, string> = {
+  '/login': 'login.title',
+  '/set-password': 'set_password.title',
+  '/tickets': 'tickets_list.title',
+  '/dashboard': 'dashboard.title',
+  '/monitoring': 'systems.title',
+  '/agreements': 'agreements.page_title',
+  '/rechnungen': 'invoices.title',
+  '/ideas': 'ideas.title',
+  '/documents': 'documents_list.title',
+  '/dateien': 'files_list.title',
+  '/forms': 'forms.title',
+  '/proposals': 'proposals.title',
+  '/social': 'social.title',
+  '/benachrichtigungen': 'notifications.title',
+  '/einstellungen': 'settings.title',
+  '/newsletter': 'newsletters.title',
+  '/termin': 'booking_book.title',
+  '/abwesenheit': 'absence.title',
+};
+
+function RouteTitle() {
+  const { t } = useTranslation();
+  const brand = useBranding();
+  const location = useLocation();
+  useEffect(() => {
+    const key = ROUTE_TITLES[location.pathname];
+    if (key) {
+      document.title = `${t(key)} · ${brand.name}`;
+    } else {
+      document.title = brand.name;
+    }
+  }, [location.pathname, t, brand.name]);
+  return null;
+}
+
 /** Gate authenticated routes; unauthenticated visitors go to /login. */
 /**
  * Gate authenticated routes. The access token lives in memory, so on a fresh
@@ -74,6 +113,7 @@ export default function App() {
   const { t } = useTranslation();
   return (
     <Suspense fallback={<p className="p-6 text-sm text-slate-500">{t('app.loading')}</p>}>
+      <RouteTitle />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/set-password" element={<SetPasswordPage />} />
