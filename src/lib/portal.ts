@@ -673,6 +673,8 @@ export const portalApi = {
 
   inquireAgreement: (id: string, message: string) =>
     api.post<PortalAgreement>(`/portal/agreements/${id}/inquiry`, { message }).then((r) => r.data),
+  terminateAgreement: (id: string, reason?: string) =>
+    api.post<PortalAgreement>(`/portal/agreements/${id}/terminate`, { reason }).then((r) => r.data),
 
   goals: () => api.get<{ goals: PortalGoal[] }>('/portal/goals').then((r) => r.data.goals),
 

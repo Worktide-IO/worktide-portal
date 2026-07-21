@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { intlLocale } from '@/lib/intl';
 import { useTranslation } from 'react-i18next';
-import { FileCheck2, FileText, MessageCircleQuestion, PenLine, Repeat } from 'lucide-react';
+import { FileCheck2, FileText, MessageCircleQuestion, PenLine, Repeat, XCircle } from 'lucide-react';
 
 import {
   portalApi,
@@ -48,8 +48,10 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
   const expiry = a.isSigned ? null : expiryHint(a.validUntil);
   const [signOpen, setSignOpen] = useState(false);
   const [inquiryOpen, setInquiryOpen] = useState(false);
+  const [terminateOpen, setTerminateOpen] = useState(false);
   const [fullName, setFullName] = useState('');
   const [inquiryMsg, setInquiryMsg] = useState('');
+  const [terminateReason, setTerminateReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,6 +80,19 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
       setInquiryMsg('');
     } catch {
       setError(t('agreements.error_inquiry_failed'));
+      setBusy(false);
+    }
+  }
+
+  async function doTerminate() {
+    setBusy(true);
+    setError(null);
+    try {
+      onChange(await portalApi.terminateAgreement(a.id, terminateReason));
+      setTerminateOpen(false);
+      setTerminateReason('');
+    } catch {
+      setError(t('agreements.error_terminate_failed'));
       setBusy(false);
     }
   }
@@ -189,15 +204,40 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
                 </button>
               </div>
             </form>
+          ) : terminateOpen ? (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-red-700">{t('agreements.terminate_heading')}</p>
+              <label className="block text-sm">
+                {t('agreements.terminate_reason_label')}
+                <textarea
+                  value={terminateReason}
+                  onChange={(e) => setTerminateReason(e.target.value)}
+                  rows={2}
+                  autoFocus
+                  className="mt-1 w-full rounded border border-slate-300 px-3 py-2 text-sm"
+                />
+              </label>
+              {error ? <p className="text-sm text-red-600">{error}</p> : null}
+              <div className="flex gap-2">
+                <button type="button" onClick={() => void doTerminate()} disabled={busy} className="rounded bg-red-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">
+                  {busy ? t('agreements.terminating') : t('agreements.confirm_terminate')}
+                </button>
+                <button type="button" onClick={() => { setTerminateOpen(false); setTerminateReason(''); }} className="rounded border border-slate-300 px-3 py-2 text-sm text-slate-600">
+                  {t('action.cancel')}
+                </button>
+              </div>
+            </div>
           ) : (
             <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setSignOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white"
-              >
-                <PenLine className="size-4" /> {t('agreements.sign_digitally')}
-              </button>
+              {a.canSign ? (
+                <button
+                  type="button"
+                  onClick={() => setSignOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded bg-[var(--brand-primary)] px-3 py-2 text-sm font-medium text-white"
+                >
+                  <PenLine className="size-4" /> {t('agreements.sign_digitally')}
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={() => setInquiryOpen(true)}
@@ -205,6 +245,15 @@ function AgreementCard({ a, onChange }: { a: PortalAgreement; onChange: (a: Port
               >
                 <MessageCircleQuestion className="size-4" /> {t('agreements.ask_question')}
               </button>
+              {a.isSigned ? (
+                <button
+                  type="button"
+                  onClick={() => setTerminateOpen(true)}
+                  className="inline-flex items-center gap-1.5 rounded border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:border-red-300 hover:bg-red-50"
+                >
+                  <XCircle className="size-4" /> {t('agreements.terminate')}
+                </button>
+              ) : null}
             </div>
           )}
         </div>
