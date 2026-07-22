@@ -5,11 +5,11 @@ php_version: "8.4"
 webserver_type: nginx-fpm
 xdebug_enabled: false
 
-# Reachable at both worktide-portal.ddev.site and portal.worktide.ddev.site.
+# Reachable at both worktide-portal.ddev.site and worktide-portal.ddev.site.
 # The latter matches the backend's PORTAL_BASE_URL so the emailed
 # "set your password" links resolve in local dev.
 additional_fqdns:
-  - portal.worktide.ddev.site
+  - worktide-portal.ddev.site
 
 # Pure SPA — no database. Persistence lives in the worktide (backend) project;
 # the portal only talks to its API over /v1.

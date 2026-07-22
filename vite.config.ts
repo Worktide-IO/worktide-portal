@@ -28,7 +28,7 @@ export default defineConfig({
     // canonical host (matches the backend's PORTAL_BASE_URL set-password link).
     hmr: {
       protocol: 'wss',
-      host: 'portal.worktide.ddev.site',
+      host: 'worktide-portal.ddev.site',
       clientPort: 443,
     },
     // Same-origin /v1 proxy to the Symfony backend (mkcert cert, host-routed).
