@@ -12,6 +12,7 @@ export type Branding = {
   legalName: string;
   logoUrl: string;
   logoUrlDark: string;
+  faviconUrl: string;
   primaryColor: string;
   accentColor: string;
   imprintUrl: string;
@@ -29,6 +30,7 @@ export const DEFAULT_BRANDING: Branding = {
   legalName: 'Worktide',
   logoUrl: '',
   logoUrlDark: '',
+  faviconUrl: '',
   primaryColor: '#0F8C72',
   accentColor: '#E0623A',
   imprintUrl: '',
@@ -63,6 +65,25 @@ export function applyBranding(b: Branding): void {
   root.style.setProperty('--brand-primary', b.primaryColor);
   root.style.setProperty('--brand-accent', b.accentColor);
   document.title = b.name;
+
+  applyFavicon(b.faviconUrl);
+}
+
+/**
+ * Swap the browser-tab favicon at runtime. Empty URL keeps the bundled icon.
+ * Rewrites the primary <link rel="icon"> in place so an operator can rebrand the
+ * tab icon via BRAND_FAVICON_URL without rebuilding the portal.
+ */
+function applyFavicon(url: string): void {
+  if (!url) return;
+  let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = 'icon';
+    document.head.appendChild(link);
+  }
+  link.type = url.endsWith('.svg') ? 'image/svg+xml' : '';
+  link.href = url;
 }
 
 /** Fetch branding from the public endpoint, applying defaults for missing keys. */
